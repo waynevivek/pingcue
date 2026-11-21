@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   const result = await createFoundingPassCheckout({
     userId: user.id,
     userEmail: user.email,
-    returnUrl: `${origin}/dashboard?checkout=success`,
+    returnUrl: `${origin}/dashboard?checkout=return`,
   });
 
   if (!result.ok) {

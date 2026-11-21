@@ -31,14 +31,36 @@ async function DashboardContent({
     listInvoices(user.id),
   ]);
 
-  const checkoutDone = resolvedParams.checkout === "success";
+  const statusParam = Array.isArray(resolvedParams.status)
+    ? resolvedParams.status[0]
+    : resolvedParams.status;
+  const checkoutParam = Array.isArray(resolvedParams.checkout)
+    ? resolvedParams.checkout[0]
+    : resolvedParams.checkout;
+  const checkoutFailed =
+    Boolean(checkoutParam) &&
+    (statusParam === "failed" || statusParam === "cancelled");
+  const checkoutSucceeded =
+    Boolean(checkoutParam) &&
+    !checkoutFailed &&
+    (statusParam === "succeeded" || statusParam === "success");
   const activeInvoices = invoices.filter(isInvoiceActive);
   const currencyTotals = computeCurrencyTotals(invoices, todayIso);
   const isFree = profile.plan === "free";
 
   return (
     <div className="space-y-8">
-      {checkoutDone && (
+      {checkoutFailed && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3.5 text-sm text-amber-950"
+        >
+          Payment didn&apos;t go through. No charge was made—try another
+          payment method or retry anytime.
+        </div>
+      )}
+
+      {checkoutSucceeded && (
         <div
           role="status"
           className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-sm text-emerald-900"
