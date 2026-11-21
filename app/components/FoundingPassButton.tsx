@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { UpgradeCheckoutButton } from "./UpgradeCheckoutButton";
 
 type FoundingPassButtonProps = {
@@ -135,19 +136,20 @@ export function FoundingPassButton({
         </svg>
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
+      {open &&
+        createPortal(
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-xs"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setOpen(false);
+            }}
           >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              className="my-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+            >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-mono text-xs font-medium uppercase tracking-wider text-blue-700">
@@ -272,9 +274,10 @@ export function FoundingPassButton({
                 </form>
               </>
             )}
-          </div>
-        </div>
-      )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
