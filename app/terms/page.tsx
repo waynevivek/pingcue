@@ -68,10 +68,10 @@ export default function TermsPage() {
               <p className="mt-1.5">
                 Questions about these terms? Email{" "}
                 <a
-                  href="mailto:support@pingcue.app"
+                  href="mailto:pingcue.support@gmail.com"
                   className="font-medium text-blue-700 underline"
                 >
-                  support@pingcue.app
+                  pingcue.support@gmail.com
                 </a>
                 .
               </p>

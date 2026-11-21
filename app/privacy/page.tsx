@@ -49,10 +49,10 @@ export default function PrivacyPage() {
                 You may delete individual invoices inside your dashboard or request full
                 account deletion at any time by emailing{" "}
                 <a
-                  href="mailto:support@pingcue.app"
+                  href="mailto:pingcue.support@gmail.com"
                   className="font-medium text-blue-700 underline"
                 >
-                  support@pingcue.app
+                  pingcue.support@gmail.com
                 </a>
                 .
               </p>

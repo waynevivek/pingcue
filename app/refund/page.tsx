@@ -37,10 +37,10 @@ export default function RefundPage() {
               <p className="mt-1.5">
                 If PingCue isn&apos;t a fit for your freelance workflow, email{" "}
                 <a
-                  href="mailto:support@pingcue.app"
+                  href="mailto:pingcue.support@gmail.com"
                   className="font-medium text-blue-700 underline"
                 >
-                  support@pingcue.app
+                  pingcue.support@gmail.com
                 </a>{" "}
                 within 7 calendar days of purchase with your order email or Dodo Payments
                 receipt ID. We will issue a full refund back to your original payment

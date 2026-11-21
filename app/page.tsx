@@ -568,10 +568,10 @@ export default function HomePage() {
               Refund Policy
             </Link>
             <a
-              href="mailto:support@pingcue.app"
+              href="mailto:pingcue.support@gmail.com"
               className="transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm"
             >
-              Contact: support@pingcue.app
+              Contact: pingcue.support@gmail.com
             </a>
           </div>
         </div>
