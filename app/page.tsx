@@ -150,11 +150,19 @@ export default function HomePage() {
             </a>
           </nav>
 
-          <FoundingPassButton
-            source="nav"
-            variant="compact"
-            label="Founding Pass — $19"
-          />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            >
+              Sign in
+            </Link>
+            <FoundingPassButton
+              source="nav"
+              variant="compact"
+              label="Founding Pass — $19"
+            />
+          </div>
         </div>
       </header>
 
