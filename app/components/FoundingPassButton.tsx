@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { UpgradeCheckoutButton } from "./UpgradeCheckoutButton";
 
 type FoundingPassButtonProps = {
   label?: string;
@@ -202,14 +203,27 @@ export function FoundingPassButton({
             ) : (
               <>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                  Live checkout is going through Dodo Payments verification now.
-                  Leave your email and we&apos;ll lock in your{" "}
-                  <strong className="text-slate-900">$19 one-time</strong>{" "}
-                  Founding Pass (unlimited active invoices, 1-click WhatsApp
-                  nudges, plus 12 months of V1.5 Document Chaser).
+                  Unlock unlimited active invoices, 1-click WhatsApp nudges, plus
+                  12 months of V1.5 Document Chaser for{" "}
+                  <strong className="text-slate-900">$19 one-time</strong>.
                 </p>
 
-                <form onSubmit={handleSubmit} className="mt-5 space-y-3" noValidate>
+                <div className="mt-4">
+                  <UpgradeCheckoutButton
+                    label="Continue to $19 Checkout →"
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="relative my-4 flex items-center">
+                  <div className="flex-grow border-t border-slate-200" />
+                  <span className="mx-3 shrink-0 text-xs text-slate-400">
+                    or save your email for launch updates
+                  </span>
+                  <div className="flex-grow border-t border-slate-200" />
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-3" noValidate>
                   <div>
                     <label
                       htmlFor={inputId}

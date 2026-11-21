@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { getUserProfile, listInvoices, requireUser } from "@/lib/db";
 import {
   computeCurrencyTotals,
@@ -16,21 +17,38 @@ export const metadata: Metadata = {
   title: "Dashboard — PingCue",
 };
 
-async function DashboardContent() {
+async function DashboardContent({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { user } = await requireUser();
   const todayIso = getTodayIsoDate();
 
-  const [profile, invoices] = await Promise.all([
+  const [resolvedParams, profile, invoices] = await Promise.all([
+    searchParams,
     getUserProfile(user.id, user.email ?? ""),
     listInvoices(user.id),
   ]);
 
+  const checkoutDone = resolvedParams.checkout === "success";
   const activeInvoices = invoices.filter(isInvoiceActive);
   const currencyTotals = computeCurrencyTotals(invoices, todayIso);
   const isFree = profile.plan === "free";
 
   return (
     <div className="space-y-8">
+      {checkoutDone && (
+        <div
+          role="status"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-sm text-emerald-900"
+        >
+          {isFree
+            ? "Payment received! Your Founding Pass is unlocking—refresh in a moment if your plan badge still shows Free."
+            : "Founding Pass unlocked! Unlimited active invoices and 1-click WhatsApp nudges are now active."}
+        </div>
+      )}
+
       {/* Header row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -47,6 +65,9 @@ async function DashboardContent() {
                 ? `Free plan · ${Math.min(activeInvoices.length, 1)}/1 active invoice`
                 : "Founding Pass · Unlimited"}
             </span>
+            {isFree && (
+              <UpgradeCheckoutButton variant="compact" label="Upgrade — $19" />
+            )}
           </div>
           <p className="mt-1 text-sm text-slate-600">
             Amounts owed, overdue, and collected grouped by currency (no FX
@@ -202,7 +223,7 @@ async function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
+export default function DashboardPage(props: PageProps<"/dashboard">) {
   return (
     <Suspense
       fallback={
@@ -215,7 +236,7 @@ export default function DashboardPage() {
         </div>
       }
     >
-      <DashboardContent />
+      <DashboardContent searchParams={props.searchParams} />
     </Suspense>
   );
 }

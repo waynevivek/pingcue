@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { countActiveInvoices, getUserProfile, requireUser } from "@/lib/db";
 import { addDaysIso, getTodayIsoDate } from "@/lib/invoices";
 import { InvoiceForm } from "../InvoiceForm";
@@ -41,14 +42,21 @@ async function NewInvoiceContent() {
       {atFreeLimit && (
         <div
           role="note"
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+          className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
         >
-          <p className="font-semibold">Free plan limit reached (1/1 active invoice)</p>
-          <p className="mt-1 text-xs leading-relaxed text-amber-900">
-            Mark your current active invoice as paid to free this slot, or
-            unlock the <strong>$19 one-time Founding Pass</strong> in Step 5
-            for unlimited active invoices.
-          </p>
+          <div>
+            <p className="font-semibold">Free plan limit reached (1/1 active invoice)</p>
+            <p className="mt-1 text-xs leading-relaxed text-amber-900">
+              Mark your current active invoice as paid to free this slot, or
+              unlock the <strong>$19 one-time Founding Pass</strong> for
+              unlimited active invoices.
+            </p>
+          </div>
+          <UpgradeCheckoutButton
+            variant="compact"
+            label="Unlock unlimited — $19"
+            className="shrink-0"
+          />
         </div>
       )}
 

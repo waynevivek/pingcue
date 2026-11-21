@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import {
   getInvoiceById,
   getUserProfile,
@@ -341,26 +342,7 @@ async function InvoiceDetailContent({
                 )}
               </div>
               <div className="mt-4">
-                <Link
-                  href="/#pricing"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#C2410C] px-4 py-2.5 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-                >
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    className="h-4 w-4 shrink-0"
-                  >
-                    <path
-                      d="M6.5 9V6.75a3.5 3.5 0 1 1 7 0V9m-8 0h9a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 14.5 17h-9A1.5 1.5 0 0 1 4 15.5v-5A1.5 1.5 0 0 1 5.5 9Z"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span>Unlock WhatsApp nudges — $19 one-time</span>
-                </Link>
+                <UpgradeCheckoutButton label="Unlock WhatsApp nudges — $19 one-time" />
               </div>
             </>
           )}
