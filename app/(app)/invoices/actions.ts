@@ -4,17 +4,22 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   countActiveInvoices,
+  createSupabaseAdminClient,
   getInvoiceById,
   getUserProfile,
+  listReminderLogs,
   requireUser,
 } from "@/lib/db";
+import { sendReminderEmail } from "@/lib/email";
 import {
   addDaysIso,
+  formatOffsetBadge,
   getTodayIsoDate,
   parseMajorToMinor,
   validateInvoiceFormData,
   type InvoiceFormState,
 } from "@/lib/invoices";
+import { buildReminderEmail, getNextReminderOffset } from "@/lib/reminders";
 
 function revalidateInvoicePaths(invoiceId?: string) {
   revalidatePath("/dashboard");
@@ -202,4 +207,71 @@ export async function deleteInvoiceAction(invoiceId: string): Promise<void> {
 
   revalidateInvoicePaths();
   redirect("/invoices");
+}
+
+export type TestEmailState = {
+  error?: string;
+  success?: string;
+};
+
+export async function sendTestEmailAction(
+  invoiceId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prevState: TestEmailState
+): Promise<TestEmailState> {
+  const { user } = await requireUser();
+  if (!user.email) {
+    return { error: "Your account does not have an email address set." };
+  }
+
+  const invoice = await getInvoiceById(user.id, invoiceId);
+  if (!invoice) {
+    return { error: "Invoice not found." };
+  }
+
+  const logs = await listReminderLogs(user.id, invoiceId);
+  const sentOffsets = new Set(
+    logs.filter((log) => log.channel === "email").map((log) => log.offset_days)
+  );
+  const offsetDays = getNextReminderOffset(
+    invoice,
+    sentOffsets,
+    getTodayIsoDate()
+  );
+
+  const email = buildReminderEmail({
+    invoice,
+    offsetDays,
+    freelancerEmail: user.email,
+    isTest: true,
+  });
+
+  const result = await sendReminderEmail({
+    to: user.email,
+    replyTo: user.email,
+    subject: email.subject,
+    text: email.text,
+    html: email.html,
+  });
+
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const admin = createSupabaseAdminClient();
+    await admin.from("reminder_logs").insert({
+      invoice_id: invoice.id,
+      user_id: user.id,
+      offset_days: offsetDays,
+      channel: "test_email",
+      recipient_email: user.email,
+      resend_id: result.id || null,
+    });
+  }
+
+  revalidateInvoicePaths(invoiceId);
+  return {
+    success: `Test email (${formatOffsetBadge(offsetDays)}) sent to ${user.email}.`,
+  };
 }

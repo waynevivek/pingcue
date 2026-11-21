@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Invoice, Profile } from "./invoices";
+import type { ReminderLog } from "./reminders";
 
 function getSupabasePublicEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -141,4 +142,23 @@ export async function countActiveInvoices(userId: string): Promise<number> {
   return invoices.filter(
     (inv) => inv.amount_received_minor < inv.amount_minor
   ).length;
+}
+
+export async function listReminderLogs(
+  userId: string,
+  invoiceId: string
+): Promise<ReminderLog[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("reminder_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("invoice_id", invoiceId)
+    .order("sent_at", { ascending: false });
+
+  if (error) {
+    return [];
+  }
+
+  return (data ?? []) as ReminderLog[];
 }
