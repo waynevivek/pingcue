@@ -124,3 +124,18 @@ create table if not exists public.processed_webhooks (
 
 alter table public.processed_webhooks enable row level security;
 -- Intentionally no authenticated policies: only service_role reads/writes webhooks.
+
+-- 5. Table Grants for PostgREST roles (required alongside RLS policies)
+grant usage on schema public to anon, authenticated, service_role;
+
+grant select on public.profiles to authenticated;
+grant all on public.profiles to service_role;
+
+grant select, insert, update, delete on public.invoices to authenticated;
+grant all on public.invoices to service_role;
+
+grant select on public.reminder_logs to authenticated;
+grant all on public.reminder_logs to service_role;
+
+grant all on public.processed_webhooks to service_role;
+
