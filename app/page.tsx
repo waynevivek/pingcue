@@ -1,15 +1,6 @@
 import Link from "next/link";
 import { FoundingPassButton } from "./components/FoundingPassButton";
 
-/*
- * ============================================================================
- * SHIP OR DIE CONTEST TRAFFIC TRACKER PLACEHOLDER
- * Primary mount point is <head> inside app/layout.tsx.
- * Remember to paste the official contest tracker snippet before sending
- * traffic or accepting your first payment.
- * ============================================================================
- */
-
 const SCHEDULE_STEPS = [
   { offset: "-3d", tone: "Friendly" },
   { offset: "0d", tone: "Friendly" },

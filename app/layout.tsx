@@ -31,13 +31,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${calistoga.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
-        {/*
-          ===================================================================
-          SHIP OR DIE CONTEST TRAFFIC TRACKER PLACEHOLDER
-          Paste the official Ship or Die tracking <script> snippet right here
-          before sending any traffic or taking your first payment.
-          ===================================================================
-        */}
+        <script
+          defer
+          src="https://www.ship-or-die.com/hackathon/verify.js"
+          data-site="a35f839d5bfd45b002946ef70cb6b46e10a59388"
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
