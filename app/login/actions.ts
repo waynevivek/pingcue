@@ -55,6 +55,24 @@ export async function signInAction(
   redirect("/dashboard");
 }
 
+function resolveEmailRedirectTo(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!raw) return undefined;
+  try {
+    const parsed = new URL(raw);
+    const isValidHttp =
+      parsed.protocol === "https:" ||
+      (parsed.protocol === "http:" &&
+        (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1"));
+    if (isValidHttp && parsed.hostname !== "your-domain.com") {
+      return `${parsed.origin}/login`;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 export async function signUpAction(
   _prevState: AuthFormState,
   formData: FormData
@@ -72,9 +90,11 @@ export async function signUpAction(
   }
 
   const supabase = await createSupabaseServerClient();
+  const emailRedirectTo = resolveEmailRedirectTo();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.email,
     password: parsed.password,
+    ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
   });
 
   if (error) {

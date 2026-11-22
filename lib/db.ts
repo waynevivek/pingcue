@@ -4,27 +4,20 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Invoice, Profile } from "./invoices";
 import type { ReminderLog } from "./reminders";
+import {
+  getSupabaseAdminEnv,
+  getSupabasePublicEnv,
+  isSupabaseConfigured,
+} from "./supabase-env";
 
-function getSupabasePublicEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!url || !anonKey) return null;
-  return { url, anonKey };
-}
-
-export function isSupabaseConfigured(): boolean {
-  return getSupabasePublicEnv() !== null;
-}
+export { isSupabaseConfigured };
 
 /** Creates a cookie-bound Supabase client for Server Components and Server Actions. */
 export async function createSupabaseServerClient() {
   const env = getSupabasePublicEnv();
   if (!env) {
     throw new Error(
-      "Supabase environment variables are missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local."
+      "Supabase environment variables are missing or invalid. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local."
     );
   }
 
@@ -50,14 +43,13 @@ export async function createSupabaseServerClient() {
 
 /** Creates a service-role Supabase client for cron jobs and verified webhooks. */
 export function createSupabaseAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
+  const env = getSupabaseAdminEnv();
+  if (!env) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY."
+      "Missing or invalid NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY."
     );
   }
-  return createClient(url, serviceKey, {
+  return createClient(env.url, env.serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

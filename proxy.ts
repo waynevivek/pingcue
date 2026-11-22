@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabasePublicEnv } from "@/lib/supabase-env";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/invoices"];
 
@@ -11,14 +12,10 @@ function isProtectedPath(pathname: string): boolean {
 
 /** Refreshes Supabase auth cookies and guards authenticated app routes. */
 export async function proxy(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
+  const env = getSupabasePublicEnv();
   const { pathname } = request.nextUrl;
 
-  if (!url || !anonKey) {
+  if (!env) {
     if (isProtectedPath(pathname)) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/login";
@@ -29,7 +26,7 @@ export async function proxy(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(url, anonKey, {
+  const supabase = createServerClient(env.url, env.anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -66,5 +63,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/invoices/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/invoices/:path*", "/login", "/api/checkout"],
 };
