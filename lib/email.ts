@@ -11,6 +11,12 @@ export function getResendFromEmail(): string {
   );
 }
 
+export function isResendUsingSandboxFrom(): boolean {
+  return getResendFromEmail().toLowerCase().includes("onboarding@resend.dev");
+}
+
+let warnedSandboxInProd = false;
+
 export type SendEmailResult =
   | { ok: true; id: string }
   | { ok: false; error: string; quotaExceeded?: boolean };
@@ -37,6 +43,17 @@ export async function sendReminderEmail({
     };
   }
 
+  if (
+    process.env.NODE_ENV === "production" &&
+    isResendUsingSandboxFrom() &&
+    !warnedSandboxInProd
+  ) {
+    warnedSandboxInProd = true;
+    console.warn(
+      "RESEND_FROM_EMAIL is still set to onboarding@resend.dev in production; Resend will only deliver to your own Resend account email until a custom domain is verified."
+    );
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
@@ -55,14 +72,21 @@ export async function sendReminderEmail({
 
       if (
         lower.includes("daily_quota_exceeded") ||
-        lower.includes("daily quota") ||
-        error.statusCode === 429
+        lower.includes("daily quota")
       ) {
         return {
           ok: false,
           quotaExceeded: true,
           error:
             "Resend daily free limit (100 emails/day) reached. Remaining sends will resume tomorrow.",
+        };
+      }
+
+      if (error.statusCode === 429) {
+        return {
+          ok: false,
+          quotaExceeded: false,
+          error: "Resend rate limit hit (too many requests per second).",
         };
       }
 
