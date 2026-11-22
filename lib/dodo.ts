@@ -18,6 +18,20 @@ export function getDodoEnvironment(): "test_mode" | "live_mode" {
     : "test_mode";
 }
 
+export function isDodoLiveMode(): boolean {
+  return getDodoEnvironment() === "live_mode";
+}
+
+export function isDodoCheckoutEnabled(
+  nodeEnv: string | undefined = process.env.NODE_ENV
+): boolean {
+  if (!isDodoConfigured()) return false;
+  if (nodeEnv === "production") {
+    return isDodoLiveMode();
+  }
+  return true;
+}
+
 export async function createFoundingPassCheckout({
   userId,
   userEmail,
@@ -83,9 +97,52 @@ export type DodoWebhookEvent = {
     payment_id?: string;
     status?: string;
     customer?: { email?: string | null };
-    metadata?: Record<string, string | undefined>;
+    metadata?: Record<string, unknown>;
+    product_cart?: Array<{ product_id?: string | null; quantity?: number }>;
   };
 };
+
+export function extractDodoMetadataString(
+  metadata: Record<string, unknown> | undefined,
+  key: string
+): string | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const raw = metadata[key];
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return String(raw);
+  }
+  if (typeof raw === "boolean") {
+    return String(raw);
+  }
+  return null;
+}
+
+export function isFoundingPassPaymentEvent(
+  event: DodoWebhookEvent,
+  expectedProductId?: string
+): boolean {
+  const plan = extractDodoMetadataString(event.data?.metadata, "plan");
+  if (plan !== "founding_pass") {
+    return false;
+  }
+
+  const trimmedProductId = expectedProductId?.trim();
+  const cart = event.data?.product_cart;
+  if (
+    trimmedProductId &&
+    trimmedProductId !== "pdt_your-product-id" &&
+    Array.isArray(cart) &&
+    cart.length > 0
+  ) {
+    return cart.some((item) => item?.product_id === trimmedProductId);
+  }
+
+  return true;
+}
 
 export function verifyDodoWebhook(
   rawBody: string,

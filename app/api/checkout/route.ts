@@ -4,12 +4,64 @@ import {
   getUserProfile,
   isSupabaseConfigured,
 } from "@/lib/db";
-import { createFoundingPassCheckout } from "@/lib/dodo";
+import { createFoundingPassCheckout, isDodoLiveMode } from "@/lib/dodo";
+
+function resolveCheckoutOrigin(request: Request): string | null {
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (rawAppUrl) {
+    try {
+      const parsed = new URL(rawAppUrl);
+      const isLocalhost =
+        parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+      if (process.env.NODE_ENV === "production") {
+        if (parsed.protocol === "https:" && !isLocalhost) {
+          return parsed.origin;
+        }
+        return null;
+      }
+      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+        return parsed.origin;
+      }
+    } catch {
+      if (process.env.NODE_ENV === "production") {
+        return null;
+      }
+    }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
+  return new URL(request.url).origin;
+}
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json(
       { error: "Supabase is not configured." },
+      { status: 500 }
+    );
+  }
+
+  if (process.env.NODE_ENV === "production" && !isDodoLiveMode()) {
+    return NextResponse.json(
+      {
+        error:
+          "Founding Pass checkout is opening soon while payment verification completes. Join the early-access list on the homepage to be notified first.",
+        checkoutUnavailable: true,
+      },
+      { status: 503 }
+    );
+  }
+
+  const origin = resolveCheckoutOrigin(request);
+  if (!origin) {
+    return NextResponse.json(
+      {
+        error:
+          "NEXT_PUBLIC_APP_URL must be configured as an HTTPS production URL.",
+      },
       { status: 500 }
     );
   }
@@ -33,10 +85,6 @@ export async function POST(request: Request) {
       checkoutUrl: "/dashboard",
     });
   }
-
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "") ||
-    new URL(request.url).origin;
 
   const result = await createFoundingPassCheckout({
     userId: user.id,

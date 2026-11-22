@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { createSupabaseAdminClient } from "@/lib/db";
+import { getSupabaseAdminEnv } from "@/lib/supabase-env";
 
 const ALLOWED_EVENTS = new Set([
   "founding_pass_click",
@@ -41,6 +43,31 @@ export async function POST(request: Request) {
       );
     }
     cleanEmail = email.trim().toLowerCase();
+
+    if (getSupabaseAdminEnv()) {
+      const supabase = createSupabaseAdminClient();
+      const { error: leadError } = await supabase
+        .from("founding_pass_leads")
+        .upsert(
+          {
+            email: cleanEmail,
+            source: cleanSource,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "email" }
+        );
+
+      if (leadError) {
+        console.error(
+          "Failed to persist Founding Pass lead:",
+          leadError.message
+        );
+        return NextResponse.json(
+          { error: "Could not save your email right now. Please try again." },
+          { status: 500 }
+        );
+      }
+    }
   }
 
   // Visible in Vercel Runtime Logs so we can track Day-1 purchase intent at ₹0

@@ -9,6 +9,7 @@ type FoundingPassButtonProps = {
   source: "nav" | "hero" | "pricing" | "footer";
   variant?: "accent" | "primary" | "compact";
   className?: string;
+  checkoutLive?: boolean;
 };
 
 export function FoundingPassButton({
@@ -16,6 +17,7 @@ export function FoundingPassButton({
   source,
   variant = "accent",
   className = "",
+  checkoutLive = false,
 }: FoundingPassButtonProps) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -210,22 +212,30 @@ export function FoundingPassButton({
                   <strong className="text-slate-900">$19 one-time</strong>.
                 </p>
 
-                <div className="mt-4">
-                  <UpgradeCheckoutButton
-                    label="Continue to $19 Checkout →"
-                    className="w-full"
-                  />
-                </div>
+                {checkoutLive && (
+                  <>
+                    <div className="mt-4">
+                      <UpgradeCheckoutButton
+                        label="Continue to $19 Checkout →"
+                        className="w-full"
+                      />
+                    </div>
 
-                <div className="relative my-4 flex items-center">
-                  <div className="flex-grow border-t border-slate-200" />
-                  <span className="mx-3 shrink-0 text-xs text-slate-400">
-                    or save your email for launch updates
-                  </span>
-                  <div className="flex-grow border-t border-slate-200" />
-                </div>
+                    <div className="relative my-4 flex items-center">
+                      <div className="flex-grow border-t border-slate-200" />
+                      <span className="mx-3 shrink-0 text-xs text-slate-400">
+                        or save your email for launch updates
+                      </span>
+                      <div className="flex-grow border-t border-slate-200" />
+                    </div>
+                  </>
+                )}
 
-                <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+                <form
+                  onSubmit={handleSubmit}
+                  className={checkoutLive ? "space-y-3" : "mt-5 space-y-3"}
+                  noValidate
+                >
                   <div>
                     <label
                       htmlFor={inputId}

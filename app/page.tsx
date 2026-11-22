@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { isDodoConfigured, isDodoLiveMode } from "@/lib/dodo";
 import { FoundingPassButton } from "./components/FoundingPassButton";
 
 const SCHEDULE_STEPS = [
   { offset: "-3d", tone: "Friendly" },
   { offset: "0d", tone: "Friendly" },
-  { offset: "+3d", tone: "Polite" },
+  { offset: "+3d", tone: "Friendly" },
   { offset: "+7d", tone: "Firm" },
   { offset: "+14d", tone: "Firm" },
   { offset: "+30d", tone: "Final" },
@@ -92,6 +93,8 @@ const FAQS = [
 ] as const;
 
 export default function HomePage() {
+  const checkoutLive = isDodoConfigured() && isDodoLiveMode();
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       {/* Sticky Frosted-Glass Navbar */}
@@ -152,6 +155,7 @@ export default function HomePage() {
               source="nav"
               variant="compact"
               label="Founding Pass — $19"
+              checkoutLive={checkoutLive}
             />
           </div>
         </div>
@@ -179,7 +183,11 @@ export default function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <FoundingPassButton source="hero" variant="accent" />
+                <FoundingPassButton
+                  source="hero"
+                  variant="accent"
+                  checkoutLive={checkoutLive}
+                />
                 <a
                   href="#how-it-works"
                   className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition-colors duration-200 hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 cursor-pointer"
@@ -430,9 +438,12 @@ export default function HomePage() {
                   </ul>
                 </div>
 
-                <p className="mt-8 rounded-lg border border-slate-200 bg-white px-4 py-3 text-center text-xs font-medium text-slate-600">
-                  Free sign-up opens alongside the V1 dashboard release.
-                </p>
+                <Link
+                  href="/login"
+                  className="mt-8 inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-2xs transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+                >
+                  Start free with 1 invoice →
+                </Link>
               </div>
 
               {/* Founding Pass */}
@@ -477,6 +488,7 @@ export default function HomePage() {
                     source="pricing"
                     variant="accent"
                     className="w-full"
+                    checkoutLive={checkoutLive}
                   />
                   <p className="mt-2.5 text-center text-xs text-slate-500">
                     Secure checkout powered by Dodo Payments (Merchant of Record).
@@ -523,7 +535,11 @@ export default function HomePage() {
               nudges, and 12 months of V1.5 Document Chaser with zero monthly fees.
             </p>
             <div className="mt-7 flex justify-center">
-              <FoundingPassButton source="footer" variant="accent" />
+              <FoundingPassButton
+                source="footer"
+                variant="accent"
+                checkoutLive={checkoutLive}
+              />
             </div>
           </div>
         </section>
