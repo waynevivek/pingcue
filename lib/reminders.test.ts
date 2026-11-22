@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { Invoice } from "./invoices";
+import type { Invoice } from "./invoices.ts";
 import {
   buildReminderEmail,
   buildWhatsappNudge,
   findDueReminderOffset,
   getNextReminderOffset,
-} from "./reminders";
+} from "./reminders.ts";
 
 function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
   return {
@@ -111,4 +111,25 @@ test("buildWhatsappNudge and getNextReminderOffset produce valid wa.me links", (
 
   const noPhone = makeInvoice({ client_whatsapp: null });
   assert.equal(buildWhatsappNudge({ invoice: noPhone, offsetDays: 7 }).waUrl, null);
+});
+
+test("buildWhatsappNudge hides full text and wa.me URL when locked for Free plan", () => {
+  const inv = makeInvoice({
+    title: "Logo",
+    client_name: "Ana",
+    payment_link: "https://rzp.io/l/secret-pay-link",
+  });
+
+  const locked = buildWhatsappNudge({
+    invoice: inv,
+    offsetDays: 0,
+    isUnlocked: false,
+  });
+
+  assert.equal(locked.message, "");
+  assert.equal(locked.waUrl, null);
+  assert.ok(locked.teaserLine.length > 0);
+  assert.ok(locked.teaserLine.length <= 42);
+  assert.ok(!locked.teaserLine.includes("secret-pay-link"));
+  assert.ok(!locked.blurredRemainder.includes("secret-pay-link"));
 });
