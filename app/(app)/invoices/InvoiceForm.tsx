@@ -90,8 +90,8 @@ export function InvoiceForm(props: InvoiceFormProps) {
     } else if (name === "payment_link" && trimmed) {
       try {
         const parsed = new URL(trimmed);
-        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-          message = "Payment link must start with https:// or http://.";
+        if (parsed.protocol !== "https:") {
+          message = "Payment link must start with https://.";
         }
       } catch {
         message = "Enter a valid URL (e.g. https://rzp.io/l/...).";

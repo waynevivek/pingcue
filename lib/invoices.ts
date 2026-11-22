@@ -245,6 +245,17 @@ export type InvoiceFormState = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Validates a calendar YYYY-MM-DD date string in UTC (rejects impossible dates like 2026-02-31). */
+export function isValidIsoDate(value: string): boolean {
+  if (!ISO_DATE_RE.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  if (y < 1970 || y > 2100) return false;
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return (
+    !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
+}
+
 /** Validates FormData from the invoice create/edit form into typed DB fields. */
 export function validateInvoiceFormData(
   formData: FormData
@@ -309,7 +320,7 @@ export function validateInvoiceFormData(
     fieldErrors.amount_received = "Enter a valid amount received (0 or more).";
   }
 
-  if (!ISO_DATE_RE.test(dueDate)) {
+  if (!isValidIsoDate(dueDate)) {
     fieldErrors.due_date = "Select a valid due date.";
   }
 
@@ -317,9 +328,8 @@ export function validateInvoiceFormData(
   if (paymentLinkRaw) {
     try {
       const parsed = new URL(paymentLinkRaw);
-      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-        fieldErrors.payment_link =
-          "Payment link must start with https:// or http://.";
+      if (parsed.protocol !== "https:") {
+        fieldErrors.payment_link = "Payment link must start with https://.";
       } else {
         paymentLink = parsed.toString();
       }
@@ -337,7 +347,7 @@ export function validateInvoiceFormData(
 
   let pausedUntil: string | null = null;
   if (pausedUntilRaw) {
-    if (!ISO_DATE_RE.test(pausedUntilRaw)) {
+    if (!isValidIsoDate(pausedUntilRaw)) {
       fieldErrors.paused_until = "Pick a valid pause date.";
     } else {
       pausedUntil = pausedUntilRaw;

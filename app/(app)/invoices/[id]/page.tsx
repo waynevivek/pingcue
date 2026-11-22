@@ -47,11 +47,20 @@ function formatSentTimestamp(iso: string): string {
 
 async function InvoiceDetailContent({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { user } = await requireUser();
-  const { id } = await params;
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+  const { id } = resolvedParams;
+  const rawActionError = Array.isArray(resolvedSearchParams.actionError)
+    ? resolvedSearchParams.actionError[0]
+    : resolvedSearchParams.actionError;
   const todayIso = getTodayIsoDate();
 
   const [invoice, profile, logs] = await Promise.all([
@@ -74,11 +83,24 @@ async function InvoiceDetailContent({
     logs.filter((log) => log.channel === "email").map((log) => log.offset_days)
   );
   const nextOffset = getNextReminderOffset(invoice, sentEmailOffsets, todayIso);
-  const whatsapp = buildWhatsappNudge({ invoice, offsetDays: nextOffset });
   const isFoundingPass = profile.plan === "founding_pass";
+  const whatsapp = buildWhatsappNudge({
+    invoice,
+    offsetDays: nextOffset,
+    isUnlocked: isFoundingPass,
+  });
 
   return (
     <div className="space-y-8">
+      {rawActionError && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3.5 text-sm font-medium text-red-900"
+        >
+          {rawActionError}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
@@ -493,7 +515,10 @@ export default function InvoiceDetailPage(props: PageProps<"/invoices/[id]">) {
         </div>
       }
     >
-      <InvoiceDetailContent params={props.params} />
+      <InvoiceDetailContent
+        params={props.params}
+        searchParams={props.searchParams}
+      />
     </Suspense>
   );
 }

@@ -6,7 +6,7 @@ import {
   isInvoiceActive,
   isInvoicePaused,
   type Invoice,
-} from "./invoices";
+} from "./invoices.ts";
 
 export interface ReminderLog {
   id: string;
@@ -249,9 +249,11 @@ export function buildReminderEmail({
 export function buildWhatsappNudge({
   invoice,
   offsetDays,
+  isUnlocked = true,
 }: {
   invoice: Invoice;
   offsetDays: number;
+  isUnlocked?: boolean;
 }): WhatsappNudge {
   const tone = getReminderToneKey(offsetDays);
   const remainingMinor = getRemainingMinor(
@@ -283,10 +285,22 @@ export function buildWhatsappNudge({
     ? `${body} Payment link: ${invoice.payment_link}`
     : body;
 
-  const cutAt = Math.min(68, message.length);
-  const spaceIndex = message.lastIndexOf(" ", cutAt);
-  const splitIndex = spaceIndex > 28 ? spaceIndex : cutAt;
+  const maxTeaserChars = Math.min(42, Math.floor(message.length * 0.45));
+  const spaceIndex = message.lastIndexOf(" ", maxTeaserChars);
+  const minWordBreak = Math.min(18, Math.floor(maxTeaserChars * 0.6));
+  const splitIndex = spaceIndex > minWordBreak ? spaceIndex : maxTeaserChars;
   const teaserLine = message.slice(0, splitIndex).trim();
+
+  if (!isUnlocked) {
+    return {
+      message: "",
+      teaserLine,
+      blurredRemainder:
+        "payment details and link — unlock Founding Pass to send in 1 click.",
+      waUrl: null,
+    };
+  }
+
   const blurredRemainder = message.slice(splitIndex).trim();
 
   const waUrl = invoice.client_whatsapp

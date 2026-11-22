@@ -15,11 +15,16 @@ import {
   addDaysIso,
   formatOffsetBadge,
   getTodayIsoDate,
+  isValidIsoDate,
   parseMajorToMinor,
   validateInvoiceFormData,
   type InvoiceFormState,
 } from "@/lib/invoices";
 import { buildReminderEmail, getNextReminderOffset } from "@/lib/reminders";
+import { getSupabaseAdminEnv } from "@/lib/supabase-env";
+
+const TEST_EMAIL_HOURLY_LIMIT = 5;
+const TEST_EMAIL_DAILY_LIMIT = 10;
 
 function revalidateInvoicePaths(invoiceId?: string) {
   revalidatePath("/dashboard");
@@ -27,6 +32,16 @@ function revalidateInvoicePaths(invoiceId?: string) {
   if (invoiceId) {
     revalidatePath(`/invoices/${invoiceId}`);
   }
+}
+
+function isFreePlanLimitError(
+  error: { message?: string } | null | undefined
+): boolean {
+  return Boolean(error?.message?.includes("FREE_PLAN_LIMIT"));
+}
+
+function redirectWithActionError(invoiceId: string, message: string): never {
+  redirect(`/invoices/${invoiceId}?actionError=${encodeURIComponent(message)}`);
 }
 
 export async function createInvoiceAction(
@@ -67,6 +82,12 @@ export async function createInvoiceAction(
     .single();
 
   if (error || !inserted) {
+    if (isFreePlanLimitError(error)) {
+      return {
+        error:
+          "Free plan includes 1 active invoice at a time. Mark your existing invoice paid or unlock the $19 Founding Pass for unlimited invoices.",
+      };
+    }
     return {
       error: error?.message ?? "Could not save invoice. Please try again.",
     };
@@ -120,6 +141,12 @@ export async function updateInvoiceAction(
     .eq("user_id", user.id);
 
   if (error) {
+    if (isFreePlanLimitError(error)) {
+      return {
+        error:
+          "Free plan allows 1 active invoice at a time. Mark another invoice paid before reopening this one.",
+      };
+    }
     return { error: error.message };
   }
 
@@ -143,7 +170,10 @@ export async function recordPaymentAction(
     : parseMajorToMinor(String(formData.get("amount_received") ?? ""));
 
   if (receivedMinor === null) {
-    return;
+    redirectWithActionError(
+      invoiceId,
+      "Enter a valid amount received (0 or more, up to 2 decimals)."
+    );
   }
 
   const wasPaid = invoice.amount_received_minor >= invoice.amount_minor;
@@ -153,18 +183,35 @@ export async function recordPaymentAction(
     if (profile.plan === "free") {
       const activeCount = await countActiveInvoices(user.id);
       if (activeCount >= 1) {
-        return;
+        redirectWithActionError(
+          invoiceId,
+          "Free plan allows 1 active invoice at a time. Mark another invoice paid before reopening this one."
+        );
       }
     }
   }
 
-  await supabase
+  const { error } = await supabase
     .from("invoices")
     .update({ amount_received_minor: receivedMinor })
     .eq("id", invoiceId)
     .eq("user_id", user.id);
 
+  if (error) {
+    if (isFreePlanLimitError(error)) {
+      redirectWithActionError(
+        invoiceId,
+        "Free plan allows 1 active invoice at a time. Mark another invoice paid before reopening this one."
+      );
+    }
+    redirectWithActionError(
+      invoiceId,
+      error.message || "Could not save payment progress. Please try again."
+    );
+  }
+
   revalidateInvoicePaths(invoiceId);
+  redirect(`/invoices/${invoiceId}`);
 }
 
 export async function pauseInvoiceAction(
@@ -179,31 +226,53 @@ export async function pauseInvoiceAction(
     pausedUntil = addDaysIso(getTodayIsoDate(), 7);
   } else if (mode === "date") {
     const rawDate = String(formData.get("paused_until") ?? "").trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
-      return;
+    if (!isValidIsoDate(rawDate)) {
+      redirectWithActionError(invoiceId, "Pick a valid pause date.");
     }
     pausedUntil = rawDate;
   } else if (mode !== "resume") {
-    return;
+    redirectWithActionError(invoiceId, "Invalid pause action.");
   }
 
-  await supabase
+  const { error } = await supabase
     .from("invoices")
     .update({ paused_until: pausedUntil })
     .eq("id", invoiceId)
     .eq("user_id", user.id);
 
+  if (error) {
+    redirectWithActionError(
+      invoiceId,
+      error.message || "Could not update reminder pause setting."
+    );
+  }
+
   revalidateInvoicePaths(invoiceId);
+  redirect(`/invoices/${invoiceId}`);
 }
 
-export async function deleteInvoiceAction(invoiceId: string): Promise<void> {
+export type DeleteInvoiceState = {
+  error?: string;
+};
+
+export async function deleteInvoiceAction(
+  invoiceId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prevState: DeleteInvoiceState
+): Promise<DeleteInvoiceState> {
   const { supabase, user } = await requireUser();
 
-  await supabase
+  const { error } = await supabase
     .from("invoices")
     .delete()
     .eq("id", invoiceId)
     .eq("user_id", user.id);
+
+  if (error) {
+    return {
+      error: error.message || "Could not delete invoice. Please try again.",
+    };
+  }
 
   revalidateInvoicePaths();
   redirect("/invoices");
@@ -222,6 +291,47 @@ export async function sendTestEmailAction(
   const { user } = await requireUser();
   if (!user.email) {
     return { error: "Your account does not have an email address set." };
+  }
+
+  if (!getSupabaseAdminEnv()) {
+    return {
+      error:
+        "Server email configuration is incomplete. Add SUPABASE_SERVICE_ROLE_KEY.",
+    };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const now = Date.now();
+  const hourAgoMs = now - 60 * 60 * 1000;
+  const dayAgoIso = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: recentTestLogs, error: rateLimitError } = await admin
+    .from("reminder_logs")
+    .select("sent_at")
+    .eq("user_id", user.id)
+    .eq("channel", "test_email")
+    .gte("sent_at", dayAgoIso);
+
+  if (rateLimitError) {
+    return { error: "Could not verify test email quota. Please try again." };
+  }
+
+  const recentList = recentTestLogs ?? [];
+  if (recentList.length >= TEST_EMAIL_DAILY_LIMIT) {
+    return {
+      error: `Daily test email limit reached (${TEST_EMAIL_DAILY_LIMIT} per 24 hours).`,
+    };
+  }
+
+  const hourlyCount = recentList.filter((row) => {
+    const sentAtMs = Date.parse(String(row.sent_at ?? ""));
+    return Number.isFinite(sentAtMs) && sentAtMs >= hourAgoMs;
+  }).length;
+
+  if (hourlyCount >= TEST_EMAIL_HOURLY_LIMIT) {
+    return {
+      error: `Hourly test email limit reached (${TEST_EMAIL_HOURLY_LIMIT} per hour). Please wait before sending another test.`,
+    };
   }
 
   const invoice = await getInvoiceById(user.id, invoiceId);
@@ -258,16 +368,17 @@ export async function sendTestEmailAction(
     return { error: result.error };
   }
 
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    const admin = createSupabaseAdminClient();
-    await admin.from("reminder_logs").insert({
-      invoice_id: invoice.id,
-      user_id: user.id,
-      offset_days: offsetDays,
-      channel: "test_email",
-      recipient_email: user.email,
-      resend_id: result.id || null,
-    });
+  const { error: logError } = await admin.from("reminder_logs").insert({
+    invoice_id: invoice.id,
+    user_id: user.id,
+    offset_days: offsetDays,
+    channel: "test_email",
+    recipient_email: user.email,
+    resend_id: result.id || null,
+  });
+
+  if (logError) {
+    console.error("Failed to record test_email log:", logError.message);
   }
 
   revalidateInvoicePaths(invoiceId);
