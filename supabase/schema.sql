@@ -61,6 +61,21 @@ create table if not exists public.invoices (
 create index if not exists invoices_user_due_idx
   on public.invoices (user_id, due_date);
 
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'invoices_reminder_offsets_len_chk'
+      and conrelid = 'public.invoices'::regclass
+  ) then
+    alter table public.invoices
+      add constraint invoices_reminder_offsets_len_chk
+      check (cardinality(reminder_offsets) between 1 and 12);
+  end if;
+end
+$$;
+
 alter table public.invoices enable row level security;
 
 drop policy if exists "Users can manage own invoices" on public.invoices;
@@ -70,6 +85,45 @@ create policy "Users can manage own invoices"
   to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- Enforce Free-plan 1-active-invoice limit atomically at the DB boundary
+create or replace function public.enforce_free_plan_invoice_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  user_plan text;
+begin
+  if new.amount_received_minor < new.amount_minor then
+    perform pg_advisory_xact_lock(hashtext(new.user_id::text));
+
+    select plan
+    into user_plan
+    from public.profiles
+    where id = new.user_id;
+
+    if coalesce(user_plan, 'free') = 'free' and exists (
+      select 1
+      from public.invoices
+      where user_id = new.user_id
+        and id is distinct from new.id
+        and amount_received_minor < amount_minor
+    ) then
+      raise exception 'FREE_PLAN_LIMIT: Free plan allows 1 active invoice at a time.'
+        using errcode = 'P0001';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists invoices_enforce_free_plan_limit on public.invoices;
+create trigger invoices_enforce_free_plan_limit
+  before insert or update on public.invoices
+  for each row execute function public.enforce_free_plan_invoice_limit();
 
 -- Auto-update updated_at on invoice edits
 create or replace function public.set_updated_at()
@@ -106,6 +160,9 @@ create unique index if not exists reminder_logs_unique_scheduled_send
 create index if not exists reminder_logs_invoice_idx
   on public.reminder_logs (invoice_id, sent_at desc);
 
+create index if not exists reminder_logs_user_channel_sent_idx
+  on public.reminder_logs (user_id, channel, sent_at desc);
+
 alter table public.reminder_logs enable row level security;
 
 drop policy if exists "Users can view own reminder logs" on public.reminder_logs;
@@ -115,7 +172,7 @@ create policy "Users can view own reminder logs"
   to authenticated
   using (auth.uid() = user_id);
 
--- 4. Processed Webhooks (Dodo Payments idempotency — service role only)
+-- 4. Processed Webhooks (Dodo Payments audit log — service role only)
 create table if not exists public.processed_webhooks (
   webhook_id text primary key,
   event_type text not null,
@@ -125,7 +182,18 @@ create table if not exists public.processed_webhooks (
 alter table public.processed_webhooks enable row level security;
 -- Intentionally no authenticated policies: only service_role reads/writes webhooks.
 
--- 5. Table Grants for PostgREST roles (required alongside RLS policies)
+-- 5. Founding Pass Waitlist Leads (service role only)
+create table if not exists public.founding_pass_leads (
+  email text primary key,
+  source text not null default 'unknown',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.founding_pass_leads enable row level security;
+-- Intentionally no authenticated/anon policies: only service_role reads/writes leads.
+
+-- 6. Table Grants for PostgREST roles (required alongside RLS policies)
 grant usage on schema public to anon, authenticated, service_role;
 
 grant select on public.profiles to authenticated;
@@ -138,4 +206,5 @@ grant select on public.reminder_logs to authenticated;
 grant all on public.reminder_logs to service_role;
 
 grant all on public.processed_webhooks to service_role;
+grant all on public.founding_pass_leads to service_role;
 
