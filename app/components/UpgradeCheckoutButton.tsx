@@ -2,14 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function UpgradeCheckoutButton({
   label = "Unlock Founding Pass — $19",
-  variant = "accent",
+  variant = "default",
   className = "",
 }: {
   label?: string;
-  variant?: "accent" | "compact";
+  variant?: "default" | "compact";
   className?: string;
 }) {
   const router = useRouter();
@@ -50,23 +52,21 @@ export function UpgradeCheckoutButton({
     }
   }
 
-  const baseStyles =
-    variant === "compact"
-      ? "inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#C2410C] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#9A3412] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer"
-      : "inline-flex items-center justify-center gap-2 rounded-lg bg-[#C2410C] px-4 py-2.5 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-[#9A3412] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 cursor-pointer";
-
   return (
     <div className="space-y-1.5">
-      <button
+      <Button
         type="button"
+        variant="default"
+        size={variant === "compact" ? "sm" : "default"}
         onClick={handleCheckout}
         disabled={loading}
-        className={`${baseStyles} ${className}`.trim()}
+        className={className}
       >
         <span>{loading ? "Opening checkout..." : label}</span>
-      </button>
+        {!loading && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
+      </Button>
       {error && (
-        <p role="alert" className="text-xs font-medium text-red-700">
+        <p role="alert" className="text-xs font-medium text-[#991b1b]">
           {error}
         </p>
       )}
