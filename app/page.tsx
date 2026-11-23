@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowUp,
   ArrowUpRight,
   Check,
   Mail,
@@ -9,7 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isDodoConfigured, isDodoLiveMode } from "@/lib/dodo";
-import { BrandMark } from "./components/BrandMark";
 import { EscalationCadenceDemo } from "./components/EscalationCadenceDemo";
 import { FaqAccordion } from "./components/FaqAccordion";
 import { FoundingPassButton } from "./components/FoundingPassButton";
@@ -22,6 +22,7 @@ import {
   PaidStampSticker,
   PaperPlaneSticker,
   PerchedPingMascot,
+  PlayfulBrandMark,
   RupeeCoinSticker,
   SparkleSticker,
   StarBuddySticker,
@@ -73,45 +74,45 @@ export default function HomePage() {
   const checkoutLive = isDodoConfigured() && isDodoLiveMode();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
+    <div id="top" className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
+            className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
           >
-            <BrandMark size="sm" />
+            <PlayfulBrandMark size="sm" />
           </Link>
 
           <nav
             aria-label="Primary"
-            className="hidden items-center gap-2 text-sm font-medium text-[#52525B] md:flex"
+            className="hidden items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/85 p-1 text-[13.5px] font-medium text-[#52525B] md:flex"
           >
             <a
               href="#how-it-works"
-              className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-[#F4F4F5] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+              className="rounded-full px-3.5 py-1.5 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
             >
               How it works
             </a>
             <a
               href="#pricing"
-              className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-[#F4F4F5] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+              className="rounded-full px-3.5 py-1.5 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
             >
               Pricing
             </a>
             <a
               href="#faq"
-              className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-[#F4F4F5] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+              className="rounded-full px-3.5 py-1.5 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
             >
               FAQ
             </a>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <Link
               href="/login"
-              className="whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-sm"
+              className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
             >
               Sign in
             </Link>
@@ -120,7 +121,7 @@ export default function HomePage() {
               variant="compact"
               label="Founding Pass — $19"
               checkoutLive={checkoutLive}
-              className="h-9 rounded-full bg-[#111111] px-3.5 text-white hover:bg-[#262626] sm:px-4"
+              className="h-9 rounded-full bg-[#111111] px-3 text-xs font-semibold text-white shadow-[0_4px_14px_-6px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] sm:px-4 sm:text-[13px]"
             />
           </div>
         </div>
@@ -732,40 +733,92 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer id="contact" className="border-t border-black/[0.06] bg-[#FFFFFF]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-[#52525B] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <BrandMark size="sm" />
-            <span className="text-xs text-[#71717A]">
-              Built for independent freelancers.
-            </span>
-          </div>
+      <footer id="contact" className="bg-[#FFFFFF] pb-8 pt-2 sm:pb-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="relative rounded-[28px] border border-black/[0.07] bg-[#F7F7F8] px-5 py-7 sm:px-8 sm:py-8">
+            <div className="pointer-events-none absolute -top-5 right-8 hidden sm:block">
+              <InlineEnvelopeSticker className="h-10 w-auto rotate-[9deg]" />
+            </div>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium">
-            <Link
-              href="/terms"
-              className="rounded-sm transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/privacy"
-              className="rounded-sm transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/refund"
-              className="rounded-sm transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-            >
-              Refund Policy
-            </Link>
-            <a
-              href="mailto:pingcue.support@gmail.com"
-              className="rounded-sm transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-            >
-              Contact: pingcue.support@gmail.com
-            </a>
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/"
+                  className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
+                >
+                  <PlayfulBrandMark size="sm" />
+                </Link>
+                <span className="inline-flex items-center rounded-full border border-black/[0.06] bg-white px-3 py-1 text-[12px] font-medium text-[#52525B]">
+                  Built for independent freelancers.
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-[12.5px] font-medium text-[#52525B]">
+                <Link
+                  href="/terms"
+                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  Terms of Service
+                </Link>
+                <Link
+                  href="/privacy"
+                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/refund"
+                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  Refund Policy
+                </Link>
+                <a
+                  href="mailto:pingcue.support@gmail.com"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:border-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  <Mail
+                    className="h-3.5 w-3.5 text-[#3B82F6]"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  <span>Contact: pingcue.support@gmail.com</span>
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-black/[0.06] pt-5 text-[12px] font-medium text-[#71717A]">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full bg-[#22C55E]"
+                  />
+                  Free for 1 active invoice
+                </span>
+                <span className="inline-flex items-center gap-1.5 tabular-nums">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full bg-[#60A5FA]"
+                  />
+                  INR · USD · EUR · GBP
+                </span>
+                <span className="inline-flex items-center gap-1.5 tabular-nums">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full bg-[#FBBF24]"
+                  />
+                  $19 one-time · No subscription
+                </span>
+              </div>
+
+              <a
+                href="#top"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[#52525B] transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+              >
+                <span>Back to top</span>
+                <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>

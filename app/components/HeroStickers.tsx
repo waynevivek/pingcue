@@ -8,6 +8,62 @@ type StickerProps = {
 };
 
 /**
+ * Playful landing-page brand mark inspired by stickitupx.com & dusk.bot:
+ * bright mint-lime tactile tile with dark vector border + crisp wordmark.
+ */
+export function PlayfulBrandMark({ size = "sm" }: { size?: "sm" | "md" }) {
+  const tileSize = size === "sm" ? "h-7 w-7 sm:h-8 sm:w-8" : "h-9 w-9";
+  const textSize =
+    size === "sm" ? "text-[15px] sm:text-[16px]" : "text-[18px]";
+
+  return (
+    <span className="group inline-flex items-center gap-2">
+      <span
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-[10px] border-2 border-[#111111] bg-[#C8F392] text-[#111111] shadow-[0_2px_0_#111111] transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-105",
+          tileSize
+        )}
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+        >
+          <rect
+            x="3"
+            y="5.5"
+            width="18"
+            height="13"
+            rx="3"
+            fill="#FFFFFF"
+            stroke="#111111"
+            strokeWidth="2"
+          />
+          <path
+            d="M4.5 7.5L12 13L19.5 7.5"
+            stroke="#111111"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="9.2" cy="14.5" r="1.1" fill="#111111" />
+          <circle cx="14.8" cy="14.5" r="1.1" fill="#111111" />
+        </svg>
+      </span>
+      <span
+        className={cn(
+          "font-sans font-bold tracking-[-0.03em] text-[#111111]",
+          textSize
+        )}
+      >
+        PingCue
+      </span>
+    </span>
+  );
+}
+
+/**
  * Interactive die-cut wrapper that gives hero perimeter stickers a physical
  * vinyl feel (subtle lift + playful micro-tilt on hover, crisp spring pop on click).
  */
