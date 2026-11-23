@@ -1,0 +1,130 @@
+.heroRise {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  animation: heroRiseIn 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.delay1 {
+  animation-delay: 40ms;
+}
+
+.delay2 {
+  animation-delay: 100ms;
+}
+
+.delay3 {
+  animation-delay: 160ms;
+}
+
+.delay4 {
+  animation-delay: 220ms;
+}
+
+.stageEnter {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0) scale(0.985);
+  animation: stageRiseIn 620ms cubic-bezier(0.22, 1, 0.36, 1) 180ms forwards;
+}
+
+.stickerPop {
+  opacity: 0;
+  animation: stickerPopIn 540ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.stickerDelay1 {
+  animation-delay: 160ms;
+}
+
+.stickerDelay2 {
+  animation-delay: 230ms;
+}
+
+.stickerDelay3 {
+  animation-delay: 300ms;
+}
+
+.stickerDelay4 {
+  animation-delay: 200ms;
+}
+
+.stickerDelay5 {
+  animation-delay: 270ms;
+}
+
+.stickerDelay6 {
+  animation-delay: 340ms;
+}
+
+/* Escalation cards inside the periwinkle pastel bento stack */
+.escalationCard {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  animation: cardStackIn 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.escalationCard1 {
+  animation-delay: 280ms;
+}
+
+.escalationCard2 {
+  animation-delay: 350ms;
+}
+
+.escalationCard3 {
+  animation-delay: 420ms;
+}
+
+@keyframes heroRiseIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes stageRiseIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes stickerPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.72) translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes cardStackIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroRise,
+  .stageEnter,
+  .stickerPop,
+  .escalationCard {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
