@@ -665,129 +665,78 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Closing Band — Framed Sky-and-Meadow Finale Stage */}
-        <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-          <div className="relative rounded-[32px] border border-black/[0.06] p-4 shadow-[0_24px_60px_-24px_rgba(37,99,235,0.22)] sm:p-8 lg:p-10">
-            {/* Sky & Meadow Backdrop */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 overflow-hidden rounded-[32px] bg-[#84D6FF]"
-            >
-              <div className="absolute inset-x-0 top-0 h-[42%] bg-[#5BC2FF]" />
-              <svg
-                viewBox="0 0 1000 120"
-                preserveAspectRatio="xMidYMin slice"
-                className="absolute inset-x-0 top-0 h-[110px] w-full"
-                fill="none"
-              >
-                <rect x="48" y="24" width="144" height="28" rx="14" fill="#FFFFFF" />
-                <rect x="78" y="12" width="80" height="26" rx="13" fill="#FFFFFF" />
-                <rect x="790" y="22" width="160" height="30" rx="15" fill="#FFFFFF" />
-                <rect x="826" y="10" width="88" height="28" rx="14" fill="#FFFFFF" />
-              </svg>
-              <svg
-                viewBox="0 0 1000 120"
-                preserveAspectRatio="xMidYMax slice"
-                className="absolute inset-x-0 bottom-0 h-[100px] w-full"
-                fill="none"
-              >
-                <path
-                  d="M0 36C220 -4 440 44 680 18C810 4 920 20 1000 28V120H0V36Z"
-                  fill="#C7F584"
-                />
-                <path
-                  d="M0 70C280 44 560 88 1000 56V120H0V70Z"
-                  fill="#A8EC62"
-                />
-              </svg>
+        {/* Closing Band — Open White Finale with Floating Stickers */}
+        <section className="relative overflow-x-clip bg-[#FFFFFF] px-4 pb-16 pt-8 sm:px-6 sm:pb-24 sm:pt-12 lg:px-8">
+          <div className="relative mx-auto max-w-5xl text-center">
+            {/* Floating perimeter stickers framing the finale CTA (desktop) */}
+            <div className="absolute left-2 top-0 hidden md:block lg:left-6">
+              <InteractiveSticker tiltClass="-rotate-[12deg] hover:-rotate-[4deg]">
+                <StarBuddySticker className="h-16 w-16" />
+              </InteractiveSticker>
+            </div>
+            <div className="absolute bottom-0 left-10 hidden md:block lg:left-16">
+              <InteractiveSticker tiltClass="rotate-[8deg] hover:rotate-0">
+                <PaidStampSticker className="h-14 w-[68px]" />
+              </InteractiveSticker>
+            </div>
+            <div className="absolute right-4 top-2 hidden md:block lg:right-8">
+              <InteractiveSticker tiltClass="rotate-[10deg] hover:rotate-[2deg]">
+                <ChimeBellSticker className="h-16 w-16" />
+              </InteractiveSticker>
+            </div>
+            <div className="absolute bottom-0 right-10 hidden md:block lg:right-16">
+              <InteractiveSticker tiltClass="-rotate-[8deg] hover:rotate-0">
+                <SparkleSticker className="h-14 w-16" />
+              </InteractiveSticker>
             </div>
 
-            {/* White Floating Finale Card with Corner Die-Cut Stickers */}
-            <div className="relative z-10 rounded-[24px] border border-black/[0.08] bg-white px-6 py-10 text-center shadow-[0_18px_48px_-16px_rgba(15,23,42,0.18)] sm:px-12 sm:py-14">
-              <div className="pointer-events-none absolute -left-5 -top-5 hidden sm:block">
-                <PaidStampSticker className="h-16 w-[76px] -rotate-[10deg]" />
-              </div>
-              <div className="pointer-events-none absolute -bottom-5 -right-4 hidden sm:block">
-                <SparkleSticker className="h-16 w-16 rotate-[8deg]" />
-              </div>
-
-              <h2 className="mx-auto max-w-[18ch] font-sans text-[28px] font-semibold leading-[1.08] tracking-[-0.035em] text-[#111111] sm:text-[40px] text-balance">
-                Get paid faster without writing another follow-up.
-              </h2>
-              <p className="mx-auto mt-3.5 max-w-xl text-[15px] leading-[1.65] text-[#52525B] sm:text-[16px]">
-                Lock in the $19 Founding Pass today—unlimited invoices, WhatsApp
-                nudges, and 12 months of V1.5 Document Chaser with zero monthly
-                fees.
-              </p>
-              <div className="mt-7 flex justify-center">
-                <FoundingPassButton
-                  source="footer"
-                  variant="primary"
-                  checkoutLive={checkoutLive}
-                  className="h-12 rounded-full bg-[#111111] px-7 text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626]"
-                />
-              </div>
+            <h2 className="mx-auto max-w-[16ch] font-sans text-[34px] font-semibold leading-[1.06] tracking-[-0.04em] text-[#111111] sm:text-[48px] text-balance">
+              Get paid faster without writing another follow-up.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-[15px] leading-[1.65] text-[#52525B] sm:text-[17px]">
+              Lock in the $19 Founding Pass today—unlimited invoices, WhatsApp
+              nudges, and 12 months of V1.5 Document Chaser with zero monthly
+              fees.
+            </p>
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              <FoundingPassButton
+                source="footer"
+                variant="primary"
+                checkoutLive={checkoutLive}
+                className="h-12 rounded-full bg-[#111111] px-7 text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626]"
+              />
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 rounded-full border-black/[0.08] bg-[#F4F4F5] px-6 text-[15px] font-semibold text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF]"
+              >
+                <Link href="/login">Start free with 1 invoice</Link>
+              </Button>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer id="contact" className="bg-[#FFFFFF] pb-8 pt-2 sm:pb-12">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="relative rounded-[28px] border border-black/[0.07] bg-[#F7F7F8] px-5 py-7 sm:px-8 sm:py-8">
-            <div className="pointer-events-none absolute -top-5 right-8 hidden sm:block">
-              <InlineEnvelopeSticker className="h-10 w-auto rotate-[9deg]" />
-            </div>
-
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/"
-                  className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
-                >
-                  <PlayfulBrandMark size="sm" />
-                </Link>
-                <span className="inline-flex items-center rounded-full border border-black/[0.06] bg-white px-3 py-1 text-[12px] font-medium text-[#52525B]">
-                  Built for independent freelancers.
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-[12.5px] font-medium text-[#52525B]">
-                <Link
-                  href="/terms"
-                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  Terms of Service
-                </Link>
-                <Link
-                  href="/privacy"
-                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  Privacy Policy
-                </Link>
-                <Link
-                  href="/refund"
-                  className="rounded-full px-3 py-1.5 transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  Refund Policy
-                </Link>
-                <a
-                  href="mailto:pingcue.support@gmail.com"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:border-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  <Mail
-                    className="h-3.5 w-3.5 text-[#3B82F6]"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  <span>Contact: pingcue.support@gmail.com</span>
-                </a>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-black/[0.06] pt-5 text-[12px] font-medium text-[#71717A]">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      {/* Footer — Full-Bleed Atmospheric Sky + Oversized Stickered Wordmark */}
+      <footer
+        id="contact"
+        className="relative overflow-hidden bg-gradient-to-b from-[#FFFFFF] via-[#D8ECFF] to-[#84C9FF] pt-10 sm:pt-14"
+      >
+        <div className="relative z-10 mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8">
+            {/* Brand & Slogan Column */}
+            <div className="lg:col-span-5">
+              <p className="font-sans text-[24px] font-semibold leading-[1.15] tracking-[-0.03em] text-[#111111] sm:text-[28px]">
+                Polite reminders.
+                <br />
+                Paid on time.{" "}
+                <InlinePaidBadgeSticker className="ml-0.5 h-[0.92em] w-auto rotate-[8deg]" />
+              </p>
+              <p className="mt-3 text-[13.5px] font-medium text-[#3F4B5C]">
+                Built for independent freelancers.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium text-[#475569]">
                 <span className="inline-flex items-center gap-1.5">
                   <span
                     aria-hidden="true"
@@ -810,15 +759,154 @@ export default function HomePage() {
                   $19 one-time · No subscription
                 </span>
               </div>
-
-              <a
-                href="#top"
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[#52525B] transition-colors hover:bg-white hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-              >
-                <span>Back to top</span>
-                <ArrowUp className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
-              </a>
             </div>
+
+            {/* Structured Link Columns */}
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)] lg:col-span-7">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                  Product
+                </p>
+                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                  <li>
+                    <a
+                      href="#how-it-works"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      How it works
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#pricing"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Pricing
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#faq"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      FAQ
+                    </a>
+                  </li>
+                  <li>
+                    <Link
+                      href="/login"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Sign in
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                  Legal
+                </p>
+                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                  <li>
+                    <Link
+                      href="/terms"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Terms of Service
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/privacy"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/refund"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Refund Policy
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="col-span-2 sm:col-span-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                  Connect
+                </p>
+                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                  <li>
+                    <a
+                      href="mailto:pingcue.support@gmail.com"
+                      className="whitespace-nowrap transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Contact: pingcue.support@gmail.com
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#top"
+                      className="inline-flex items-center gap-1 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      <span>Back to top</span>
+                      <ArrowUp
+                        className="h-3.5 w-3.5"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Oversized Bottom-Cropped White Wordmark with Perched Die-Cut Stickers */}
+        <div className="relative mx-auto mt-2 max-w-[1400px] select-none px-2 sm:mt-4 sm:px-6">
+          <div
+            aria-hidden="true"
+            className="relative flex items-end justify-center pt-6 sm:pt-10"
+          >
+            {/* Perched interactive stickers riding along the giant white letters */}
+            <div className="absolute left-[11%] top-[8%] z-10 sm:left-[15%] sm:top-[12%]">
+              <InteractiveSticker tiltClass="-rotate-[14deg] hover:-rotate-[4deg]">
+                <StarBuddySticker className="h-10 w-10 sm:h-16 sm:w-16 lg:h-[82px] lg:w-[82px]" />
+              </InteractiveSticker>
+            </div>
+
+            <div className="absolute bottom-[16%] left-[32%] z-10 sm:left-[34%]">
+              <InteractiveSticker tiltClass="rotate-[10deg] hover:rotate-0">
+                <RupeeCoinSticker className="h-8 w-8 sm:h-14 sm:w-14 lg:h-[68px] lg:w-[68px]" />
+              </InteractiveSticker>
+            </div>
+
+            <div className="absolute left-[54%] top-[10%] z-10 sm:left-[56%] sm:top-[12%]">
+              <InteractiveSticker tiltClass="-rotate-[9deg] hover:rotate-[2deg]">
+                <InlineEnvelopeSticker className="h-8 w-auto sm:h-14 lg:h-[64px]" />
+              </InteractiveSticker>
+            </div>
+
+            <div className="absolute bottom-[16%] right-[11%] z-10 sm:right-[13%]">
+              <InteractiveSticker tiltClass="rotate-[11deg] hover:rotate-[2deg]">
+                <PaidStampSticker className="h-9 w-11 sm:h-14 sm:w-[70px] lg:h-[68px] lg:w-[84px]" />
+              </InteractiveSticker>
+            </div>
+
+            <div className="absolute right-[26%] top-[2%] z-10 hidden sm:block">
+              <InteractiveSticker tiltClass="-rotate-[8deg] hover:rotate-[4deg]">
+                <SparkleSticker className="h-12 w-14 lg:h-16 lg:w-[72px]" />
+              </InteractiveSticker>
+            </div>
+
+            <span className="block w-full translate-y-[16%] text-center font-sans text-[23vw] font-extrabold leading-[0.82] tracking-[-0.055em] text-white sm:text-[20vw] lg:text-[min(19.5vw,268px)]">
+              PingCue
+            </span>
           </div>
         </div>
       </footer>
