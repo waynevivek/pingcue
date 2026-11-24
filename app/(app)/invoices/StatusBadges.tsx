@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import {
   formatShortDate,
   getInvoiceStatus,
@@ -26,36 +27,28 @@ export function InvoiceStatusBadges({
   const statusBadge = {
     unpaid: {
       label: "Unpaid",
-      classes: "border-slate-200 bg-slate-100 text-slate-700",
+      variant: "neutral" as const,
     },
     partial: {
       label: "Partial",
-      classes: "border-amber-200 bg-amber-50 text-amber-800",
+      variant: "firm" as const,
     },
     paid: {
       label: "Paid",
-      classes: "border-emerald-200 bg-emerald-50 text-emerald-800",
+      variant: "paid" as const,
     },
   }[status];
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span
-        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-xs font-medium ${statusBadge.classes}`}
-      >
-        {statusBadge.label}
-      </span>
+      <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
 
-      {overdue && (
-        <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 font-mono text-xs font-medium text-red-700">
-          Overdue
-        </span>
-      )}
+      {overdue && <Badge variant="overdue">Overdue</Badge>}
 
       {paused && invoice.paused_until && (
-        <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 font-mono text-xs font-medium text-blue-800">
+        <Badge variant="primary">
           Paused until {formatShortDate(invoice.paused_until)}
-        </span>
+        </Badge>
       )}
     </div>
   );

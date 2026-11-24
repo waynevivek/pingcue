@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { ArrowLeft } from "lucide-react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
+import { Card } from "@/components/ui/card";
 import { countActiveInvoices, getUserProfile, requireUser } from "@/lib/db";
 import { addDaysIso, getTodayIsoDate } from "@/lib/invoices";
 import { InvoiceForm } from "../InvoiceForm";
@@ -26,14 +28,15 @@ async function NewInvoiceContent() {
       <div>
         <Link
           href="/invoices"
-          className="text-sm font-medium text-blue-700 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F4F5] px-3.5 py-1.5 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#EAEAEF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
         >
-          ← Back to invoices
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Back to invoices</span>
         </Link>
-        <h1 className="mt-3 font-display text-3xl text-slate-900">
+        <h1 className="mt-4 font-sans text-[28px] font-semibold tracking-[-0.03em] text-[#111111] sm:text-[32px]">
           New invoice
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-[#52525B]">
           Add the client, payment link, and due date. PingCue schedules
           escalating email reminders automatically.
         </p>
@@ -42,11 +45,13 @@ async function NewInvoiceContent() {
       {atFreeLimit && (
         <div
           role="note"
-          className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[24px] border border-black/[0.08] bg-[#FFF1A8] p-4 text-sm text-[#4B4116] sm:flex-row sm:items-center sm:justify-between sm:p-5"
         >
           <div>
-            <p className="font-semibold">Free plan limit reached (1/1 active invoice)</p>
-            <p className="mt-1 text-xs leading-relaxed text-amber-900">
+            <p className="font-semibold text-[#111111]">
+              Free plan limit reached (1/1 active invoice)
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-[#4B4116]">
               Mark your current active invoice as paid to free this slot, or
               unlock the <strong>$19 one-time Founding Pass</strong> for
               unlimited active invoices.
@@ -60,13 +65,13 @@ async function NewInvoiceContent() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs sm:p-8">
+      <Card className="p-6 sm:p-8">
         <InvoiceForm
           mode="create"
           defaultDueDate={addDaysIso(todayIso, 7)}
           disabled={atFreeLimit}
         />
-      </div>
+      </Card>
     </div>
   );
 }
@@ -76,8 +81,8 @@ export default function NewInvoicePage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-2xl space-y-4">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-slate-200" />
-          <div className="h-96 animate-pulse rounded-2xl border border-slate-200 bg-white" />
+          <div className="h-9 w-48 animate-pulse rounded-lg bg-muted" />
+          <div className="h-96 animate-pulse rounded-xl border border-border bg-card" />
         </div>
       }
     >

@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ArrowLeft, ExternalLink, MessageSquare } from "lucide-react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   getInvoiceById,
   getUserProfile,
@@ -95,7 +101,7 @@ async function InvoiceDetailContent({
       {rawActionError && (
         <div
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3.5 text-sm font-medium text-red-900"
+          className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-5 py-3.5 text-sm font-medium text-[#9F1239]"
         >
           {rawActionError}
         </div>
@@ -106,45 +112,46 @@ async function InvoiceDetailContent({
         <div className="space-y-2">
           <Link
             href="/invoices"
-            className="text-sm font-medium text-blue-700 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F4F5] px-3.5 py-1.5 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#EAEAEF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
           >
-            ← Back to invoices
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Back to invoices</span>
           </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-3xl text-slate-900">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <h1 className="font-sans text-[26px] font-semibold tracking-[-0.03em] text-[#111111] sm:text-[32px]">
               {invoice.title}
             </h1>
             <InvoiceStatusBadges invoice={invoice} todayIso={todayIso} />
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-[#52525B]">
             {invoice.client_name} · {invoice.client_email}
             {invoice.client_whatsapp ? ` · WhatsApp ${invoice.client_whatsapp}` : ""}
             {" · "}Due {formatShortDate(invoice.due_date)}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-left shadow-2xs sm:text-right">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+        <Card className="px-5 py-4 text-left sm:text-right">
+          <p className="text-xs font-medium text-[#52525B]">
             Remaining balance
           </p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-slate-900">
+          <p className="mt-1 font-mono text-2xl font-semibold text-[#111111] tabular-nums">
             {formatMoney(remainingMinor, invoice.currency)}
           </p>
-          <p className="font-mono text-xs text-slate-500">
+          <p className="font-mono text-xs text-[#52525B] tabular-nums">
             {formatMoney(invoice.amount_received_minor, invoice.currency)} of{" "}
             {formatMoney(invoice.amount_minor, invoice.currency)} received
           </p>
-        </div>
+        </Card>
       </div>
 
       {/* Quick Actions Row: Payment & Pause */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Payment Progress */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
-          <h2 className="text-base font-semibold text-slate-900">
+        <Card className="p-6">
+          <h2 className="text-base font-semibold text-foreground">
             Payment progress
           </h2>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Update amount received manually. Reminders chase only the remaining
             balance and stop automatically once paid.
           </p>
@@ -154,27 +161,21 @@ async function InvoiceDetailContent({
             className="mt-4 flex flex-wrap items-end gap-3"
           >
             <div className="min-w-[160px] flex-1">
-              <label
-                htmlFor="quick-amount-received"
-                className="block text-xs font-medium text-slate-700"
-              >
+              <Label htmlFor="quick-amount-received" className="text-xs">
                 Total received ({invoice.currency})
-              </label>
-              <input
+              </Label>
+              <Input
                 id="quick-amount-received"
                 name="amount_received"
                 type="text"
                 inputMode="decimal"
                 defaultValue={minorToMajorInput(invoice.amount_received_minor)}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+                className="mt-1.5 h-10 font-mono"
               />
             </div>
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer"
-            >
+            <Button type="submit" variant="outline">
               Save payment
-            </button>
+            </Button>
           </form>
 
           {active && (
@@ -183,22 +184,19 @@ async function InvoiceDetailContent({
               className="mt-3"
             >
               <input type="hidden" name="mark_full" value="1" />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 cursor-pointer"
-              >
+              <Button type="submit" variant="success" className="w-full">
                 Mark fully paid ({formatMoney(invoice.amount_minor, invoice.currency)})
-              </button>
+              </Button>
             </form>
           )}
-        </section>
+        </Card>
 
         {/* Pause Reminders */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
-          <h2 className="text-base font-semibold text-slate-900">
+        <Card className="p-6">
+          <h2 className="text-base font-semibold text-foreground">
             Pause reminders
           </h2>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {paused && invoice.paused_until
               ? `Reminders are paused through ${formatShortDate(invoice.paused_until)}.`
               : "Client promised to pay on a specific date? Pause automated sends until then."}
@@ -207,23 +205,17 @@ async function InvoiceDetailContent({
           <div className="mt-4 flex flex-wrap gap-2">
             <form action={pauseInvoiceAction.bind(null, invoice.id)}>
               <input type="hidden" name="mode" value="plus7" />
-              <button
-                type="submit"
-                className="rounded-lg bg-[#2563EB] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer"
-              >
+              <Button type="submit" size="sm">
                 Pause 7 days
-              </button>
+              </Button>
             </form>
 
             {paused && (
               <form action={pauseInvoiceAction.bind(null, invoice.id)}>
                 <input type="hidden" name="mode" value="resume" />
-                <button
-                  type="submit"
-                  className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer"
-                >
+                <Button type="submit" variant="outline" size="sm">
                   Resume reminders
-                </button>
+                </Button>
               </form>
             )}
           </div>
@@ -234,46 +226,40 @@ async function InvoiceDetailContent({
           >
             <input type="hidden" name="mode" value="date" />
             <div className="min-w-[160px] flex-1">
-              <label
-                htmlFor="quick-paused-until"
-                className="block text-xs font-medium text-slate-700"
-              >
+              <Label htmlFor="quick-paused-until" className="text-xs">
                 Or pause until date
-              </label>
-              <input
+              </Label>
+              <Input
                 id="quick-paused-until"
                 name="paused_until"
                 type="date"
                 required
                 defaultValue={invoice.paused_until ?? addDaysIso(todayIso, 7)}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+                className="mt-1.5 h-10 font-mono"
               />
             </div>
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer"
-            >
+            <Button type="submit" variant="outline">
               Set pause date
-            </button>
+            </Button>
           </form>
-        </section>
+        </Card>
       </div>
 
       {/* Send Test Email & Zero-API WhatsApp Nudge */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Send Test Email */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-slate-900">
+        <Card className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
               Preview email in your inbox
             </h2>
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 font-mono text-xs font-medium text-blue-800">
+            <Badge variant="primary">
               Next: {formatOffsetBadge(nextOffset)} · {getOffsetTone(nextOffset)}
-            </span>
+            </Badge>
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Sends the next reminder email to{" "}
-            <span className="font-mono text-slate-800">{user.email}</span> (with{" "}
+            <span className="font-mono text-foreground">{user.email}</span> (with{" "}
             <code className="font-mono">Reply-To</code> set to you) so you can
             check tone and formatting before anything goes to your client.
           </p>
@@ -281,83 +267,69 @@ async function InvoiceDetailContent({
           <div className="mt-4">
             <SendTestEmailButton invoiceId={invoice.id} />
           </div>
-        </section>
+        </Card>
 
         {/* Zero-API WhatsApp Nudge */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-slate-900">
+        <Card className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
               Send on WhatsApp
             </h2>
-            <span
-              className={`rounded-full border px-2.5 py-0.5 font-mono text-xs font-medium ${
-                isFoundingPass
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                  : "border-amber-200 bg-amber-50 text-amber-800"
-              }`}
-            >
+            <Badge variant={isFoundingPass ? "paid" : "firm"}>
               {isFoundingPass ? "Zero-API wa.me" : "Founding Pass"}
-            </span>
+            </Badge>
           </div>
 
           {isFoundingPass ? (
             <>
-              <p className="mt-1.5 text-xs text-slate-600">
-                Opens WhatsApp with a prefilled {getOffsetTone(nextOffset).toLowerCase()}{" "}
-                nudge and remaining balance—zero WhatsApp API setup required.
+              <p className="mt-2 text-xs text-muted-foreground">
+                Opens WhatsApp with a prefilled{" "}
+                {getOffsetTone(nextOffset).toLowerCase()} nudge and remaining
+                balance—zero WhatsApp API setup required.
               </p>
-              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700">
+              <div className="mt-3 rounded-lg border border-border bg-background/70 p-3 text-xs leading-relaxed text-foreground">
                 {whatsapp.message}
               </div>
               <div className="mt-4">
                 {!active ? (
-                  <p className="text-xs font-medium text-emerald-800">
+                  <p className="text-xs font-medium text-success-foreground">
                     Invoice is marked paid—no WhatsApp nudge needed.
                   </p>
                 ) : whatsapp.waUrl ? (
-                  <a
-                    href={whatsapp.waUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      className="h-4 w-4 shrink-0"
+                  <Button asChild variant="success">
+                    <a
+                      href={whatsapp.waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <path
-                        d="M17 9.75a7 7 0 0 1-10.3 6.18L3 17l1.2-4.15A7 7 0 1 1 17 9.75Z"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span>Send on WhatsApp ↗</span>
-                  </a>
+                      <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                      <span>Send on WhatsApp</span>
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                  </Button>
                 ) : (
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-muted-foreground">
                     Add a client WhatsApp number in the Edit form below (e.g.{" "}
-                    <span className="font-mono">919876543210</span>) to enable
-                    1-click WhatsApp nudges.
+                    <span className="font-mono text-foreground">
+                      919876543210
+                    </span>
+                    ) to enable 1-click WhatsApp nudges.
                   </p>
                 )}
               </div>
             </>
           ) : (
             <>
-              <p className="mt-1.5 text-xs text-slate-600">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Your polite WhatsApp message for {invoice.client_name} is ready
                 to send in 1 click—unlock with the one-time Founding Pass.
               </p>
-              <div className="relative mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-700">
+              <div className="relative mt-3 overflow-hidden rounded-lg border border-border bg-background/70 p-3 text-xs leading-relaxed text-foreground">
                 <span>{whatsapp.teaserLine} </span>
                 {whatsapp.blurredRemainder && (
                   <span
                     aria-hidden="true"
-                    className="select-none blur-[4px] text-slate-500"
+                    className="select-none blur-[4px] text-muted-foreground"
                   >
                     {whatsapp.blurredRemainder}
                   </span>
@@ -368,17 +340,17 @@ async function InvoiceDetailContent({
               </div>
             </>
           )}
-        </section>
+        </Card>
       </div>
 
       {/* Computed Reminder Schedule */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
+      <Card className="p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-foreground">
               Computed reminder schedule
             </h2>
-            <p className="mt-0.5 text-xs text-slate-600">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Daily cron runs at 04:00 UTC (09:30 IST), sending each unpaused
               step once with your email set as Reply-To.
             </p>
@@ -388,9 +360,10 @@ async function InvoiceDetailContent({
               href={invoice.payment_link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold text-blue-700 underline hover:text-blue-800"
+              className="inline-flex items-center gap-1 rounded-full bg-[#F4F4F5] px-3 py-1 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#EAEAEF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
             >
-              Open payment link ↗
+              <span>Open payment link</span>
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
           )}
         </div>
@@ -400,104 +373,103 @@ async function InvoiceDetailContent({
             const scheduledIso = addDaysIso(invoice.due_date, offset);
             const tone = getOffsetTone(offset);
             const wasSent = sentEmailOffsets.has(offset);
-            const toneClasses = wasSent
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : tone === "Friendly"
-                ? "border-blue-200 bg-blue-50 text-blue-800"
-                : tone === "Firm"
-                  ? "border-amber-200 bg-amber-50 text-amber-800"
-                  : "border-red-200 bg-red-50 text-red-700";
+
+            const cardClasses = wasSent
+              ? "border-[#BBF7D0] bg-[#DCFCE7]/75"
+              : tone === "Firm"
+                ? "border-[#FDE047] bg-[#FEF9C3]/80"
+                : tone === "Final notice"
+                  ? "border-[#FECDD3] bg-[#FFE4E6]/75"
+                  : "border-black/[0.08] bg-[#FAFAFA]";
+
+            const badgeVariant = wasSent
+              ? ("paid" as const)
+              : tone === "Firm"
+                ? ("firm" as const)
+                : tone === "Final notice"
+                  ? ("overdue" as const)
+                  : ("primary" as const);
 
             return (
               <div
                 key={offset}
-                className={`rounded-xl border p-3 ${
-                  wasSent
-                    ? "border-emerald-200 bg-emerald-50/40"
-                    : "border-slate-200 bg-slate-50/60"
-                }`}
+                className={`rounded-2xl border p-3 ${cardClasses}`}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-mono text-xs font-semibold text-slate-900">
+                  <span className="font-mono text-xs font-semibold text-[#111111]">
                     {formatOffsetBadge(offset)}
                   </span>
-                  <span
-                    className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${toneClasses}`}
-                  >
+                  <Badge variant={badgeVariant} className="px-2 py-0 text-[10px]">
                     {wasSent ? "Sent" : tone}
-                  </span>
+                  </Badge>
                 </div>
-                <p className="mt-2 font-mono text-xs text-slate-600">
+                <p className="mt-2 font-mono text-xs text-[#52525B]">
                   {formatShortDate(scheduledIso)}
                 </p>
               </div>
             );
           })}
         </div>
-      </section>
+      </Card>
 
       {/* Reminder Activity Log */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs">
-        <h2 className="text-base font-semibold text-slate-900">
+      <Card className="p-6">
+        <h2 className="text-base font-semibold text-[#111111]">
           Reminder history ({logs.length})
         </h2>
 
         {logs.length === 0 ? (
-          <p className="mt-2 text-xs text-slate-600">
+          <p className="mt-2 text-xs text-[#52525B]">
             No emails sent for this invoice yet. Click &ldquo;Send test email to
             me&rdquo; above to preview how your reminder looks in your inbox.
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-slate-200 text-xs">
+          <ul className="mt-4 divide-y divide-black/[0.06] text-xs">
             {logs.map((log) => (
               <li
                 key={log.id}
                 className="flex flex-wrap items-center justify-between gap-2 py-2.5"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono font-semibold text-slate-800">
+                  <Badge variant="neutral">
                     {formatOffsetBadge(log.offset_days)}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 font-medium ${
-                      log.channel === "email"
-                        ? "bg-emerald-50 text-emerald-800"
-                        : "bg-blue-50 text-blue-800"
-                    }`}
-                  >
+                  </Badge>
+                  <Badge variant={log.channel === "email" ? "paid" : "primary"}>
                     {log.channel === "email" ? "Scheduled email" : "Test email"}
+                  </Badge>
+                  <span className="text-[#52525B]">
+                    to {log.recipient_email}
                   </span>
-                  <span className="text-slate-600">to {log.recipient_email}</span>
                 </div>
-                <span className="font-mono text-slate-500">
+                <span className="font-mono text-[#52525B]">
                   {formatSentTimestamp(log.sent_at)} UTC
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
       {/* Edit Invoice Form */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs sm:p-8">
-        <h2 className="mb-5 text-lg font-semibold text-slate-900">
+      <Card className="p-6 sm:p-8">
+        <h2 className="mb-5 text-lg font-semibold text-[#111111]">
           Edit invoice details
         </h2>
         <InvoiceForm mode="edit" invoice={invoice} />
-      </section>
+      </Card>
 
       {/* Danger Zone */}
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-red-200/80 bg-white p-5">
+      <Card className="flex flex-wrap items-center justify-between gap-4 border-[#FECDD3] p-5">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">
+          <h2 className="text-sm font-semibold text-[#111111]">
             Delete invoice
           </h2>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-[#52525B]">
             Permanently removes this invoice and its reminder logs.
           </p>
         </div>
         <DeleteInvoiceButton invoiceId={invoice.id} />
-      </section>
+      </Card>
     </div>
   );
 }
@@ -507,10 +479,10 @@ export default function InvoiceDetailPage(props: PageProps<"/invoices/[id]">) {
     <Suspense
       fallback={
         <div className="space-y-6">
-          <div className="h-10 w-64 animate-pulse rounded-lg bg-slate-200" />
+          <div className="h-10 w-64 animate-pulse rounded-lg bg-muted" />
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-white" />
-            <div className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-white" />
+            <div className="h-44 animate-pulse rounded-xl border border-border bg-card" />
+            <div className="h-44 animate-pulse rounded-xl border border-border bg-card" />
           </div>
         </div>
       }
