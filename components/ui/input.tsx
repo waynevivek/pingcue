@@ -11,7 +11,7 @@ export function Input({
       type={type}
       data-slot="input"
       className={cn(
-        "flex h-11 w-full rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm text-foreground transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/75 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-70 aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/20",
+        "flex h-11 w-full rounded-xl border border-black/12 bg-[#FAFAFA] px-3.5 py-2.5 text-sm text-[#111111] transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#71717A] focus-visible:border-[#111111] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]/10 disabled:cursor-not-allowed disabled:bg-[#F4F4F5] disabled:opacity-70 aria-invalid:border-[#E11D48] aria-invalid:focus-visible:ring-[#E11D48]/20",
         className
       )}
       {...props}

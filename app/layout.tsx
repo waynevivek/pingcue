@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Figtree, JetBrains_Mono, Newsreader } from "next/font/google";
+import { Figtree, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-newsreader",
-});
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -30,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${newsreader.variable} ${figtree.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${figtree.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
         <script

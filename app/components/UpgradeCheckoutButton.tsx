@@ -66,7 +66,7 @@ export function UpgradeCheckoutButton({
         {!loading && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
       </Button>
       {error && (
-        <p role="alert" className="text-xs font-medium text-[#991b1b]">
+        <p role="alert" className="text-xs font-medium text-[#BE123C]">
           {error}
         </p>
       )}

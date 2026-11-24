@@ -29,17 +29,17 @@ export function AuthForm({ disabled }: { disabled: boolean }) {
       <div
         role="tablist"
         aria-label="Authentication mode"
-        className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1"
+        className="grid grid-cols-2 gap-1 rounded-full bg-[#F4F4F5] p-1"
       >
         <button
           type="button"
           role="tab"
           aria-selected={isSignIn}
           onClick={() => setMode("signin")}
-          className={`rounded-lg py-2 text-sm font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+          className={`rounded-full py-2 text-sm font-semibold transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
             isSignIn
-              ? "border border-border bg-card text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-white text-[#111111] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              : "text-[#52525B] hover:text-[#111111]"
           }`}
         >
           Sign in
@@ -49,10 +49,10 @@ export function AuthForm({ disabled }: { disabled: boolean }) {
           role="tab"
           aria-selected={!isSignIn}
           onClick={() => setMode("signup")}
-          className={`rounded-lg py-2 text-sm font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+          className={`rounded-full py-2 text-sm font-semibold transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
             !isSignIn
-              ? "border border-border bg-card text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-white text-[#111111] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              : "text-[#52525B] hover:text-[#111111]"
           }`}
         >
           Create account
@@ -62,7 +62,7 @@ export function AuthForm({ disabled }: { disabled: boolean }) {
       {activeState.error && (
         <div
           role="alert"
-          className="mt-4 rounded-xl border border-destructive-border bg-destructive-surface px-4 py-3 text-sm text-[#991b1b]"
+          className="mt-4 rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-4 py-3 text-sm text-[#9F1239]"
         >
           {activeState.error}
         </div>
@@ -71,7 +71,7 @@ export function AuthForm({ disabled }: { disabled: boolean }) {
       {activeState.success && (
         <div
           role="status"
-          className="mt-4 rounded-xl border border-success-border bg-success-surface px-4 py-3 text-sm text-success-foreground"
+          className="mt-4 rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-4 py-3 text-sm text-[#14532D]"
         >
           {activeState.success}
         </div>

@@ -25,7 +25,7 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
       {state.success && (
         <p
           role="status"
-          className="rounded-lg border border-success-border bg-success-surface px-3 py-2 text-xs font-medium text-success-foreground"
+          className="rounded-xl border border-[#BBF7D0] bg-[#DCFCE7] px-3 py-2 text-xs font-medium text-[#14532D]"
         >
           {state.success}
         </p>
@@ -34,7 +34,7 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
       {state.error && (
         <p
           role="alert"
-          className="rounded-lg border border-destructive-border bg-destructive-surface px-3 py-2 text-xs font-medium text-[#991b1b]"
+          className="rounded-xl border border-[#FECDD3] bg-[#FFE4E6] px-3 py-2 text-xs font-medium text-[#9F1239]"
         >
           {state.error}
         </p>

@@ -142,7 +142,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
           tabIndex={-1}
           role="alert"
           aria-labelledby="invoice-form-error-title"
-          className="rounded-xl border border-destructive-border bg-destructive-surface p-4 text-sm text-[#991b1b] focus:outline-none focus:ring-2 focus:ring-destructive"
+          className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] p-4 text-sm text-[#9F1239] focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
         >
           <h3 id="invoice-form-error-title" className="font-semibold">
             {state.error ?? "Please check the fields below:"}
@@ -153,7 +153,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
                 <li key={field}>
                   <a
                     href={`#${FIELD_IDS[field] ?? ""}`}
-                    className="underline hover:text-foreground"
+                    className="underline hover:text-[#111111]"
                   >
                     {msg}
                   </a>
@@ -167,7 +167,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
       {state.success && (
         <div
           role="status"
-          className="rounded-xl border border-success-border bg-success-surface px-4 py-3 text-sm font-medium text-success-foreground"
+          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-4 py-3 text-sm font-medium text-[#14532D]"
         >
           {state.success}
         </div>
@@ -176,7 +176,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor={FIELD_IDS.title}>
-            Invoice title <span className="text-[#991b1b]">*</span>
+            Invoice title <span className="text-[#BE123C]">*</span>
           </Label>
           <Input
             id={FIELD_IDS.title}
@@ -191,7 +191,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5"
           />
           {mergedErrors.title && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.title}
             </p>
           )}
@@ -199,7 +199,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div>
           <Label htmlFor={FIELD_IDS.client_name}>
-            Client name <span className="text-[#991b1b]">*</span>
+            Client name <span className="text-[#BE123C]">*</span>
           </Label>
           <Input
             id={FIELD_IDS.client_name}
@@ -214,7 +214,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5"
           />
           {mergedErrors.client_name && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.client_name}
             </p>
           )}
@@ -222,7 +222,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div>
           <Label htmlFor={FIELD_IDS.client_email}>
-            Client email <span className="text-[#991b1b]">*</span>
+            Client email <span className="text-[#BE123C]">*</span>
           </Label>
           <Input
             id={FIELD_IDS.client_email}
@@ -238,7 +238,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5"
           />
           {mergedErrors.client_email && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.client_email}
             </p>
           )}
@@ -262,11 +262,11 @@ export function InvoiceForm(props: InvoiceFormProps) {
             aria-invalid={Boolean(mergedErrors.client_whatsapp)}
             className="mt-1.5 font-mono"
           />
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-[#52525B]">
             Include country code without + (e.g. 919876543210).
           </p>
           {mergedErrors.client_whatsapp && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.client_whatsapp}
             </p>
           )}
@@ -274,7 +274,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div>
           <Label htmlFor={FIELD_IDS.due_date}>
-            Due date <span className="text-[#991b1b]">*</span>
+            Due date <span className="text-[#BE123C]">*</span>
           </Label>
           <Input
             id={FIELD_IDS.due_date}
@@ -292,7 +292,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5 font-mono"
           />
           {mergedErrors.due_date && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.due_date}
             </p>
           )}
@@ -300,14 +300,14 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div>
           <Label htmlFor={FIELD_IDS.currency}>
-            Currency <span className="text-[#991b1b]">*</span>
+            Currency <span className="text-[#BE123C]">*</span>
           </Label>
           <select
             id={FIELD_IDS.currency}
             name="currency"
             disabled={props.disabled}
             defaultValue={invoice?.currency ?? "INR"}
-            className="mt-1.5 flex h-11 w-full rounded-lg border border-input bg-card px-3.5 py-2.5 font-mono text-sm text-foreground transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-70"
+            className="mt-1.5 flex h-11 w-full rounded-xl border border-black/12 bg-[#FAFAFA] px-3.5 py-2.5 font-mono text-sm text-[#111111] transition-colors focus-visible:border-[#111111] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]/10 disabled:cursor-not-allowed disabled:bg-[#F4F4F5] disabled:opacity-70"
           >
             {CURRENCIES.map((cur) => (
               <option key={cur} value={cur}>
@@ -319,7 +319,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div>
           <Label htmlFor={FIELD_IDS.amount}>
-            Invoice amount <span className="text-[#991b1b]">*</span>
+            Invoice amount <span className="text-[#BE123C]">*</span>
           </Label>
           <Input
             id={FIELD_IDS.amount}
@@ -336,7 +336,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5 font-mono"
           />
           {mergedErrors.amount && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.amount}
             </p>
           )}
@@ -359,7 +359,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
             className="mt-1.5"
           />
           {mergedErrors.payment_link && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.payment_link}
             </p>
           )}
@@ -386,12 +386,12 @@ export function InvoiceForm(props: InvoiceFormProps) {
             aria-invalid={Boolean(mergedErrors.reminder_offsets)}
             className="mt-1.5 font-mono"
           />
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-[#52525B]">
             Default: <span className="font-mono">-3, 0, 3, 7, 14, 30</span>.
             Negative = before due date; positive = days overdue.
           </p>
           {mergedErrors.reminder_offsets && (
-            <p className="mt-1 text-xs font-medium text-[#991b1b]">
+            <p className="mt-1 text-xs font-medium text-[#BE123C]">
               {mergedErrors.reminder_offsets}
             </p>
           )}
@@ -415,7 +415,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
                 className="mt-1.5 font-mono"
               />
               {mergedErrors.amount_received && (
-                <p className="mt-1 text-xs font-medium text-[#991b1b]">
+                <p className="mt-1 text-xs font-medium text-[#BE123C]">
                   {mergedErrors.amount_received}
                 </p>
               )}
@@ -435,7 +435,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
                 className="mt-1.5 font-mono"
               />
               {mergedErrors.paused_until && (
-                <p className="mt-1 text-xs font-medium text-[#991b1b]">
+                <p className="mt-1 text-xs font-medium text-[#BE123C]">
                   {mergedErrors.paused_until}
                 </p>
               )}

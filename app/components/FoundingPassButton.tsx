@@ -107,7 +107,38 @@ export function FoundingPassButton({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="pt-5 sm:pt-5">
+          <div className="flex h-8 items-center pr-10">
+            <span className="inline-flex items-center rounded-full bg-[#111111] px-3 py-1 text-[11px] font-semibold text-white">
+              One-time · No subscription
+            </span>
+          </div>
+
+          <div
+            aria-hidden="true"
+            className="relative mt-3.5 mb-5 h-[56px] w-full overflow-hidden rounded-2xl bg-[#D6F7A3]"
+          >
+            <svg
+              viewBox="0 0 400 80"
+              preserveAspectRatio="xMidYMid slice"
+              className="h-full w-full"
+              fill="none"
+            >
+              <rect width="400" height="80" fill="#FFE875" />
+              <path
+                d="M0 44C90 22 190 56 290 36C340 26 375 30 400 36V80H0V44Z"
+                fill="#C8F392"
+              />
+              <path
+                d="M0 60C120 46 250 72 400 54V80H0V60Z"
+                fill="#A8EC62"
+              />
+              <circle cx="62" cy="24" r="10" fill="#FFFFFF" opacity="0.9" />
+              <circle cx="152" cy="56" r="4" fill="#FFFFFF" />
+              <circle cx="288" cy="52" r="4.5" fill="#FF9AA2" />
+            </svg>
+          </div>
+
           <DialogHeader>
             <DialogTitle>Lock in your $19 Founding Pass</DialogTitle>
             <DialogDescription>
@@ -118,11 +149,11 @@ export function FoundingPassButton({
           </DialogHeader>
 
           {status === "done" ? (
-            <div className="mt-4 rounded-lg border border-success-border bg-success-surface p-4">
-              <p className="text-sm font-semibold text-success-foreground">
+            <div className="mt-4 rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] p-4 text-[#14532D]">
+              <p className="text-sm font-semibold">
                 You&apos;re on the Founding Pass list.
               </p>
-              <p className="mt-1 text-sm text-success-foreground/90">
+              <p className="mt-1 text-sm text-[#14532D]/90">
                 We recorded <span className="font-mono">{email.trim()}</span>. As
                 soon as Dodo Payments checkout switches to live mode, we&apos;ll
                 send your $19 one-time link first.
@@ -146,11 +177,11 @@ export function FoundingPassButton({
                   />
 
                   <div className="relative my-4 flex items-center">
-                    <div className="grow border-t border-border" />
-                    <span className="mx-3 shrink-0 text-xs text-muted-foreground">
+                    <div className="grow border-t border-black/[0.08]" />
+                    <span className="mx-3 shrink-0 text-xs text-[#52525B]">
                       or save your email for launch updates
                     </span>
-                    <div className="grow border-t border-border" />
+                    <div className="grow border-t border-black/[0.08]" />
                   </div>
                 </>
               )}
@@ -179,7 +210,7 @@ export function FoundingPassButton({
                   {status === "error" && errorMessage && (
                     <p
                       role="alert"
-                      className="mt-1.5 text-xs font-medium text-[#991b1b]"
+                      className="mt-1.5 text-xs font-medium text-[#BE123C]"
                     >
                       {errorMessage}
                     </p>
@@ -197,7 +228,7 @@ export function FoundingPassButton({
                     : "Lock in $19 Founding Pass"}
                 </Button>
 
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-center text-xs text-[#52525B]">
                   No spam. One email when checkout opens. No subscription ever.
                 </p>
               </form>

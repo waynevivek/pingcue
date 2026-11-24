@@ -18,7 +18,7 @@ export function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-foreground/45 transition-opacity",
+        "fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] transition-opacity",
         className
       )}
       {...props}
@@ -40,7 +40,7 @@ export function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-[0_18px_40px_-14px_rgba(20,34,29,0.28)] focus:outline-none",
+          "fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-black/[0.08] bg-white p-6 sm:p-7 text-[#111111] shadow-[0_24px_64px_-16px_rgba(15,23,42,0.24)] focus:outline-none",
           className
         )}
         {...props}
@@ -49,7 +49,7 @@ export function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             aria-label="Close modal"
-            className="absolute top-4 right-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+            className="absolute top-5 right-5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/[0.08] bg-[#F4F4F5] text-[#52525B] transition-colors hover:bg-[#EAEAEF] hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </DialogPrimitive.Close>
@@ -92,7 +92,10 @@ export function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("font-display text-2xl leading-tight tracking-tight text-foreground", className)}
+      className={cn(
+        "font-sans text-[22px] sm:text-[24px] font-semibold leading-tight tracking-[-0.03em] text-[#111111]",
+        className
+      )}
       {...props}
     />
   );
@@ -105,7 +108,7 @@ export function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-sm leading-relaxed text-muted-foreground", className)}
+      className={cn("text-[14px] leading-relaxed text-[#52525B]", className)}
       {...props}
     />
   );

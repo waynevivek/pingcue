@@ -20,7 +20,7 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
         variant="outline"
         size="sm"
         onClick={() => setConfirming(true)}
-        className="border-destructive-border text-[#991b1b] hover:bg-destructive-surface"
+        className="border-[#FECDD3] text-[#BE123C] hover:bg-[#FFE4E6]"
       >
         Delete invoice
       </Button>
@@ -30,7 +30,7 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
   return (
     <div className="space-y-2 text-right">
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <span className="text-xs font-medium text-[#991b1b]">
+        <span className="text-xs font-medium text-[#BE123C]">
           Delete this invoice permanently?
         </span>
         <form action={formAction}>
@@ -54,7 +54,7 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
         </Button>
       </div>
       {state.error && (
-        <p role="alert" className="text-xs font-medium text-[#991b1b]">
+        <p role="alert" className="text-xs font-medium text-[#BE123C]">
           {state.error}
         </p>
       )}

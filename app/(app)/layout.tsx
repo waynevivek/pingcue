@@ -15,12 +15,12 @@ async function UserNavStatus() {
   return (
     <div className="flex items-center gap-3">
       <Badge
-        variant={isPass ? "primary" : "neutral"}
+        variant={isPass ? "paid" : "neutral"}
         className="hidden sm:inline-flex"
       >
         {isPass ? "Founding Pass" : "Free plan"}
       </Badge>
-      <span className="hidden max-w-[180px] truncate text-xs text-muted-foreground md:inline">
+      <span className="hidden max-w-[180px] truncate text-xs text-[#52525B] md:inline">
         {profile.email || user.email}
       </span>
       <form action={signOutAction}>
@@ -34,33 +34,35 @@ async function UserNavStatus() {
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-card">
+    <div className="flex min-h-screen flex-col bg-[#FAFAFA] text-[#111111]">
+      <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-5 sm:gap-6">
+          <div className="flex items-center gap-4 sm:gap-5">
             <Link
               href="/dashboard"
-              className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
             >
-              <BrandMark />
+              <BrandMark size="sm" />
             </Link>
 
             <nav
               aria-label="App navigation"
               className="flex items-center gap-2 sm:gap-3 text-sm font-medium"
             >
-              <Link
-                href="/dashboard"
-                className="rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/invoices"
-                className="rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Invoices
-              </Link>
+              <div className="flex items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/85 p-1 text-[13px] font-medium text-[#52525B]">
+                <Link
+                  href="/dashboard"
+                  className="rounded-full px-3 py-1 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/invoices"
+                  className="rounded-full px-3 py-1 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                >
+                  Invoices
+                </Link>
+              </div>
               <Button asChild size="sm" className="hidden sm:inline-flex">
                 <Link href="/invoices/new">
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -74,7 +76,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             fallback={
               <div
                 aria-hidden="true"
-                className="h-8 w-32 animate-pulse rounded-lg bg-muted"
+                className="h-8 w-32 animate-pulse rounded-full bg-[#F4F4F5]"
               />
             }
           >

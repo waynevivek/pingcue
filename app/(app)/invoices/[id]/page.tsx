@@ -101,7 +101,7 @@ async function InvoiceDetailContent({
       {rawActionError && (
         <div
           role="alert"
-          className="rounded-xl border border-destructive-border bg-destructive-surface px-5 py-3.5 text-sm font-medium text-[#991b1b]"
+          className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-5 py-3.5 text-sm font-medium text-[#9F1239]"
         >
           {rawActionError}
         </div>
@@ -112,18 +112,18 @@ async function InvoiceDetailContent({
         <div className="space-y-2">
           <Link
             href="/invoices"
-            className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F4F5] px-3.5 py-1.5 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#EAEAEF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
           >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Back to invoices</span>
           </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <h1 className="font-sans text-[26px] font-semibold tracking-[-0.03em] text-[#111111] sm:text-[32px]">
               {invoice.title}
             </h1>
             <InvoiceStatusBadges invoice={invoice} todayIso={todayIso} />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-[#52525B]">
             {invoice.client_name} · {invoice.client_email}
             {invoice.client_whatsapp ? ` · WhatsApp ${invoice.client_whatsapp}` : ""}
             {" · "}Due {formatShortDate(invoice.due_date)}
@@ -131,13 +131,13 @@ async function InvoiceDetailContent({
         </div>
 
         <Card className="px-5 py-4 text-left sm:text-right">
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-xs font-medium text-[#52525B]">
             Remaining balance
           </p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-foreground">
+          <p className="mt-1 font-mono text-2xl font-semibold text-[#111111] tabular-nums">
             {formatMoney(remainingMinor, invoice.currency)}
           </p>
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="font-mono text-xs text-[#52525B] tabular-nums">
             {formatMoney(invoice.amount_received_minor, invoice.currency)} of{" "}
             {formatMoney(invoice.amount_minor, invoice.currency)} received
           </p>
@@ -360,7 +360,7 @@ async function InvoiceDetailContent({
               href={invoice.payment_link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              className="inline-flex items-center gap-1 rounded-full bg-[#F4F4F5] px-3 py-1 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#EAEAEF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
             >
               <span>Open payment link</span>
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -375,12 +375,12 @@ async function InvoiceDetailContent({
             const wasSent = sentEmailOffsets.has(offset);
 
             const cardClasses = wasSent
-              ? "border-success-border bg-success-surface/60"
+              ? "border-[#BBF7D0] bg-[#DCFCE7]/75"
               : tone === "Firm"
-                ? "border-accent-border bg-accent-surface/60"
+                ? "border-[#FDE047] bg-[#FEF9C3]/80"
                 : tone === "Final notice"
-                  ? "border-destructive-border bg-destructive-surface/60"
-                  : "border-border bg-background/70";
+                  ? "border-[#FECDD3] bg-[#FFE4E6]/75"
+                  : "border-black/[0.08] bg-[#FAFAFA]";
 
             const badgeVariant = wasSent
               ? ("paid" as const)
@@ -393,17 +393,17 @@ async function InvoiceDetailContent({
             return (
               <div
                 key={offset}
-                className={`rounded-lg border p-3 ${cardClasses}`}
+                className={`rounded-2xl border p-3 ${cardClasses}`}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-mono text-xs font-semibold text-foreground">
+                  <span className="font-mono text-xs font-semibold text-[#111111]">
                     {formatOffsetBadge(offset)}
                   </span>
-                  <Badge variant={badgeVariant} className="px-1.5 py-0 text-[10px]">
+                  <Badge variant={badgeVariant} className="px-2 py-0 text-[10px]">
                     {wasSent ? "Sent" : tone}
                   </Badge>
                 </div>
-                <p className="mt-2 font-mono text-xs text-muted-foreground">
+                <p className="mt-2 font-mono text-xs text-[#52525B]">
                   {formatShortDate(scheduledIso)}
                 </p>
               </div>
@@ -414,17 +414,17 @@ async function InvoiceDetailContent({
 
       {/* Reminder Activity Log */}
       <Card className="p-6">
-        <h2 className="text-base font-semibold text-foreground">
+        <h2 className="text-base font-semibold text-[#111111]">
           Reminder history ({logs.length})
         </h2>
 
         {logs.length === 0 ? (
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-[#52525B]">
             No emails sent for this invoice yet. Click &ldquo;Send test email to
             me&rdquo; above to preview how your reminder looks in your inbox.
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-border text-xs">
+          <ul className="mt-4 divide-y divide-black/[0.06] text-xs">
             {logs.map((log) => (
               <li
                 key={log.id}
@@ -437,11 +437,11 @@ async function InvoiceDetailContent({
                   <Badge variant={log.channel === "email" ? "paid" : "primary"}>
                     {log.channel === "email" ? "Scheduled email" : "Test email"}
                   </Badge>
-                  <span className="text-muted-foreground">
+                  <span className="text-[#52525B]">
                     to {log.recipient_email}
                   </span>
                 </div>
-                <span className="font-mono text-muted-foreground">
+                <span className="font-mono text-[#52525B]">
                   {formatSentTimestamp(log.sent_at)} UTC
                 </span>
               </li>
@@ -452,19 +452,19 @@ async function InvoiceDetailContent({
 
       {/* Edit Invoice Form */}
       <Card className="p-6 sm:p-8">
-        <h2 className="mb-5 text-lg font-semibold text-foreground">
+        <h2 className="mb-5 text-lg font-semibold text-[#111111]">
           Edit invoice details
         </h2>
         <InvoiceForm mode="edit" invoice={invoice} />
       </Card>
 
       {/* Danger Zone */}
-      <Card className="flex flex-wrap items-center justify-between gap-4 border-destructive-border p-5">
+      <Card className="flex flex-wrap items-center justify-between gap-4 border-[#FECDD3] p-5">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">
+          <h2 className="text-sm font-semibold text-[#111111]">
             Delete invoice
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#52525B]">
             Permanently removes this invoice and its reminder logs.
           </p>
         </div>
