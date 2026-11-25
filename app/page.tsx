@@ -154,6 +154,7 @@ export default function HomePage() {
               source="nav"
               variant="compact"
               label="Founding Pass — $19"
+              mobileLabel="Pass — $19"
               checkoutLive={checkoutLive}
               className="h-9 rounded-full bg-[#111111] px-3 text-xs font-semibold text-white shadow-[0_4px_14px_-6px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] sm:px-4 sm:text-[13px]"
             />
@@ -877,7 +878,7 @@ export default function HomePage() {
                   <li>
                     <a
                       href={`mailto:${SUPPORT_EMAIL}`}
-                      className="whitespace-nowrap transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="break-words transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Contact: {SUPPORT_EMAIL}
                     </a>

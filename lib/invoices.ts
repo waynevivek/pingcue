@@ -1,6 +1,13 @@
 export const CURRENCIES = ["INR", "USD", "EUR", "GBP"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  INR: "₹",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+};
+
 export const DEFAULT_REMINDER_OFFSETS = [-3, 0, 3, 7, 14, 30] as const;
 
 export type InvoiceStatus = "unpaid" | "partial" | "paid";

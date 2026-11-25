@@ -211,3 +211,36 @@ export async function listReminderLogs(
 
   return (data ?? []) as ReminderLog[];
 }
+
+export type SentReminderLogRef = Pick<
+  ReminderLog,
+  "invoice_id" | "channel" | "offset_days" | "scheduled_for"
+>;
+
+/** Batch-loads sent scheduled email logs for all of a user's invoices in a single query. */
+export async function listSentEmailLogsByUser(
+  userId: string
+): Promise<Map<string, SentReminderLogRef[]>> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("reminder_logs")
+    .select("invoice_id, channel, offset_days, scheduled_for")
+    .eq("user_id", userId)
+    .eq("channel", "email");
+
+  const grouped = new Map<string, SentReminderLogRef[]>();
+  if (error || !data) {
+    return grouped;
+  }
+
+  for (const row of data as SentReminderLogRef[]) {
+    const existing = grouped.get(row.invoice_id);
+    if (existing) {
+      existing.push(row);
+    } else {
+      grouped.set(row.invoice_id, [row]);
+    }
+  }
+
+  return grouped;
+}

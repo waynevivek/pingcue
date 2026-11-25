@@ -16,6 +16,7 @@ import { UpgradeCheckoutButton } from "./UpgradeCheckoutButton";
 
 type FoundingPassButtonProps = {
   label?: string;
+  mobileLabel?: string;
   source: "nav" | "hero" | "pricing" | "footer";
   variant?: "primary" | "compact" | "inverted";
   className?: string;
@@ -24,6 +25,7 @@ type FoundingPassButtonProps = {
 
 export function FoundingPassButton({
   label = "Get Founding Pass — $19",
+  mobileLabel,
   source,
   variant = "primary",
   className = "",
@@ -104,7 +106,14 @@ export function FoundingPassButton({
         onClick={handleOpen}
         className={className}
       >
-        <span>{label}</span>
+        {mobileLabel ? (
+          <>
+            <span className="sm:hidden">{mobileLabel}</span>
+            <span className="hidden sm:inline">{label}</span>
+          </>
+        ) : (
+          <span>{label}</span>
+        )}
         <ArrowRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
       </Button>
 

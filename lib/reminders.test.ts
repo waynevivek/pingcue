@@ -9,6 +9,7 @@ import {
   findDueReminderOffset,
   getNextReminderOffset,
   getSentOffsetsForDueDate,
+  getUpcomingScheduledStep,
 } from "./reminders.ts";
 
 function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
@@ -209,4 +210,47 @@ test("buildFreelancerDigestEmail and buildCronAlertEmail format clean escaped su
   });
   assert.match(alert.subject, /1 failed on 2026-11-20/);
   assert.ok(alert.html.includes("&lt;bad&gt;"));
+});
+
+test("getUpcomingScheduledStep reports paid, paused, due-now, upcoming, and complete accurately", () => {
+  const paid = makeInvoice({ amount_received_minor: 4_500_000 });
+  assert.deepEqual(getUpcomingScheduledStep(paid, new Set(), "2026-11-18"), {
+    kind: "paid",
+  });
+
+  const paused = makeInvoice({ paused_until: "2026-11-25" });
+  assert.deepEqual(getUpcomingScheduledStep(paused, new Set(), "2026-11-18"), {
+    kind: "paused",
+    pausedUntil: "2026-11-25",
+  });
+
+  const active = makeInvoice();
+  assert.deepEqual(
+    getUpcomingScheduledStep(active, new Set(), "2026-11-17"),
+    {
+      kind: "scheduled",
+      offsetDays: -3,
+      scheduledDate: "2026-11-17",
+      isDueNow: true,
+    }
+  );
+
+  assert.deepEqual(
+    getUpcomingScheduledStep(active, new Set([-3]), "2026-11-18"),
+    {
+      kind: "scheduled",
+      offsetDays: 0,
+      scheduledDate: "2026-11-20",
+      isDueNow: false,
+    }
+  );
+
+  assert.deepEqual(
+    getUpcomingScheduledStep(
+      active,
+      new Set([-3, 0, 3, 7, 14, 30]),
+      "2026-12-21"
+    ),
+    { kind: "complete" }
+  );
 });

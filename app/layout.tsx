@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree, JetBrains_Mono } from "next/font/google";
 import { getMetadataBase, SITE_NAME } from "@/lib/site-config";
 import "./globals.css";
@@ -18,6 +18,13 @@ const jetbrainsMono = JetBrains_Mono({
 const DEFAULT_TITLE = "PingCue — Polite Invoice Chasers for Freelancers";
 const DEFAULT_DESCRIPTION =
   "Send payment links by email or WhatsApp? PingCue automatically sends escalating payment reminders so you get paid without an invoicing suite.";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FFFFFF",
+};
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),

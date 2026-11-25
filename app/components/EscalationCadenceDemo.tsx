@@ -452,7 +452,7 @@ export function EscalationCadenceDemo() {
                 <div className="flex flex-1 flex-col justify-between rounded-[20px] border border-black/[0.07] bg-[#FAFAFA] p-4 sm:p-5">
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3 text-[12px]">
-                      <span className="truncate font-medium text-[#52525B]">
+                      <span className="min-w-0 max-w-full truncate font-medium text-[#52525B]">
                         {channel === "email"
                           ? "To: priya@northstar.co · Reply-To: you@studio.com"
                           : "WhatsApp wa.me · Prefilled nudge"}

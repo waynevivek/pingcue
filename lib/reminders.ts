@@ -136,6 +136,58 @@ export function getNextReminderOffset(
   return sortedOffsets[sortedOffsets.length - 1] ?? 0;
 }
 
+export type UpcomingReminderStep =
+  | { kind: "paid" }
+  | { kind: "paused"; pausedUntil: string }
+  | {
+      kind: "scheduled";
+      offsetDays: number;
+      scheduledDate: string;
+      isDueNow: boolean;
+    }
+  | { kind: "complete" };
+
+/** Returns the truthful next scheduled step (or paused/paid/complete status) for list & dashboard views. */
+export function getUpcomingScheduledStep(
+  invoice: Invoice,
+  sentOffsets: ReadonlySet<number>,
+  todayIso: string
+): UpcomingReminderStep {
+  if (!isInvoiceActive(invoice)) {
+    return { kind: "paid" };
+  }
+
+  if (isInvoicePaused(invoice, todayIso) && invoice.paused_until) {
+    return { kind: "paused", pausedUntil: invoice.paused_until };
+  }
+
+  const dueNow = findDueReminderOffset(invoice, sentOffsets, todayIso);
+  if (dueNow !== null) {
+    return {
+      kind: "scheduled",
+      offsetDays: dueNow,
+      scheduledDate: addDaysIso(invoice.due_date, dueNow),
+      isDueNow: true,
+    };
+  }
+
+  const sortedOffsets = [...invoice.reminder_offsets].sort((a, b) => a - b);
+  for (const offset of sortedOffsets) {
+    if (sentOffsets.has(offset)) continue;
+    const scheduledDate = addDaysIso(invoice.due_date, offset);
+    if (scheduledDate >= todayIso) {
+      return {
+        kind: "scheduled",
+        offsetDays: offset,
+        scheduledDate,
+        isDueNow: false,
+      };
+    }
+  }
+
+  return { kind: "complete" };
+}
+
 function getTimingPhrase(offsetDays: number, dueFormatted: string): string {
   if (offsetDays < 0) {
     const days = Math.abs(offsetDays);

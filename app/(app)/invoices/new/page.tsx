@@ -65,9 +65,10 @@ async function NewInvoiceContent() {
         </div>
       )}
 
-      <Card className="p-6 sm:p-8">
+      <Card className="p-5 sm:p-7">
         <InvoiceForm
           mode="create"
+          todayIso={todayIso}
           defaultDueDate={addDaysIso(todayIso, 7)}
           defaultCurrency={profile.default_currency}
           disabled={atFreeLimit}
