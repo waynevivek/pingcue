@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -9,7 +10,9 @@ import {
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { isDodoConfigured, isDodoLiveMode } from "@/lib/dodo";
+import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/db";
+import { isDodoCheckoutEnabled } from "@/lib/dodo";
+import { SUPPORT_EMAIL } from "@/lib/site-config";
 import { EscalationCadenceDemo } from "./components/EscalationCadenceDemo";
 import { FaqAccordion } from "./components/FaqAccordion";
 import { FoundingPassButton } from "./components/FoundingPassButton";
@@ -70,8 +73,33 @@ const FAQS = [
   },
 ] as const;
 
+async function HeaderAuthAction() {
+  let isSignedIn = false;
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      isSignedIn = Boolean(user);
+    } catch {
+      isSignedIn = false;
+    }
+  }
+
+  return (
+    <Link
+      href={isSignedIn ? "/dashboard" : "/login"}
+      className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
+    >
+      {isSignedIn ? "Dashboard" : "Sign in"}
+    </Link>
+  );
+}
+
 export default function HomePage() {
-  const checkoutLive = isDodoConfigured() && isDodoLiveMode();
+  const checkoutLive = isDodoCheckoutEnabled();
 
   return (
     <div id="top" className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
@@ -110,12 +138,18 @@ export default function HomePage() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-            <Link
-              href="/login"
-              className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
+            <Suspense
+              fallback={
+                <Link
+                  href="/login"
+                  className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
+                >
+                  Sign in
+                </Link>
+              }
             >
-              Sign in
-            </Link>
+              <HeaderAuthAction />
+            </Suspense>
             <FoundingPassButton
               source="nav"
               variant="compact"
@@ -842,10 +876,10 @@ export default function HomePage() {
                 <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
                   <li>
                     <a
-                      href="mailto:pingcue.support@gmail.com"
+                      href={`mailto:${SUPPORT_EMAIL}`}
                       className="whitespace-nowrap transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
-                      Contact: pingcue.support@gmail.com
+                      Contact: {SUPPORT_EMAIL}
                     </a>
                   </li>
                   <li>

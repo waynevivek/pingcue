@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicEnv } from "@/lib/supabase-env";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/invoices"];
+const PROTECTED_PREFIXES = ["/dashboard", "/invoices", "/settings"];
 
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -56,6 +56,8 @@ export async function proxy(request: NextRequest) {
   if (user && pathname === "/login") {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.search =
+      request.nextUrl.searchParams.get("upgrade") === "1" ? "?upgrade=1" : "";
     return NextResponse.redirect(dashboardUrl);
   }
 
@@ -63,5 +65,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/invoices/:path*", "/login", "/api/checkout"],
+  matcher: [
+    "/dashboard/:path*",
+    "/invoices/:path*",
+    "/settings/:path*",
+    "/login",
+    "/auth/reset-password",
+    "/api/checkout",
+  ],
 };

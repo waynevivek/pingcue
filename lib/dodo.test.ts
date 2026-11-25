@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Webhook } from "standardwebhooks";
 import {
+  extractDodoCustomerId,
   extractDodoMetadataString,
+  extractDodoPaymentId,
   isDodoCheckoutEnabled,
   isDodoLiveMode,
   isFoundingPassPaymentEvent,
+  isRevocationWebhookEvent,
   verifyDodoWebhook,
 } from "./dodo.ts";
 
@@ -147,4 +150,88 @@ test("isDodoLiveMode and isDodoCheckoutEnabled block test_mode checkout in produ
       delete process.env.DODO_FOUNDING_PASS_PRODUCT_ID;
     else process.env.DODO_FOUNDING_PASS_PRODUCT_ID = prevProductId;
   }
+});
+
+test("extractDodoPaymentId and extractDodoCustomerId trim strings and ignore missing values", () => {
+  assert.equal(
+    extractDodoPaymentId({
+      data: {
+        payment_id: "  pay_123  ",
+        customer: { customer_id: "  cus_456  " },
+      },
+    }),
+    "pay_123"
+  );
+  assert.equal(
+    extractDodoCustomerId({
+      data: {
+        payment_id: "pay_123",
+        customer: { customer_id: "  cus_456  " },
+      },
+    }),
+    "cus_456"
+  );
+  assert.equal(extractDodoPaymentId({ data: { payment_id: "   " } }), null);
+  assert.equal(
+    extractDodoCustomerId({ data: { customer: { customer_id: null } } }),
+    null
+  );
+});
+
+test("isRevocationWebhookEvent handles full refunds, partial refunds, and disputes", () => {
+  assert.equal(
+    isRevocationWebhookEvent("refund.succeeded", {
+      data: { refund_id: "ref_1", payment_id: "pay_1", is_partial: false },
+    }),
+    true
+  );
+  assert.equal(
+    isRevocationWebhookEvent("refund.succeeded", {
+      data: { refund_id: "ref_2", payment_id: "pay_1" },
+    }),
+    true
+  );
+  assert.equal(
+    isRevocationWebhookEvent("refund.succeeded", {
+      data: { refund_id: "ref_3", payment_id: "pay_1", is_partial: true },
+    }),
+    false
+  );
+  assert.equal(
+    isRevocationWebhookEvent("refund.failed", {
+      data: { refund_id: "ref_4", payment_id: "pay_1" },
+    }),
+    false
+  );
+
+  assert.equal(
+    isRevocationWebhookEvent("dispute.opened", {
+      data: { dispute_id: "dsp_1", payment_id: "pay_1" },
+    }),
+    true
+  );
+  assert.equal(
+    isRevocationWebhookEvent("dispute.accepted", {
+      data: { dispute_id: "dsp_2", payment_id: "pay_1" },
+    }),
+    true
+  );
+  assert.equal(
+    isRevocationWebhookEvent("dispute.lost", {
+      data: { dispute_id: "dsp_3", payment_id: "pay_1" },
+    }),
+    true
+  );
+  assert.equal(
+    isRevocationWebhookEvent("dispute.won", {
+      data: { dispute_id: "dsp_4", payment_id: "pay_1" },
+    }),
+    false
+  );
+  assert.equal(
+    isRevocationWebhookEvent("payment.succeeded", {
+      data: { payment_id: "pay_1" },
+    }),
+    false
+  );
 });

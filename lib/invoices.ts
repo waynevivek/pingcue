@@ -12,6 +12,10 @@ export interface Profile {
   email: string;
   plan: UserPlan;
   founding_pass_unlocked_at: string | null;
+  display_name: string | null;
+  default_currency: Currency;
+  notify_on_send: boolean;
+  dodo_payment_id?: string | null;
 }
 
 export interface Invoice {
@@ -99,6 +103,40 @@ export function isInvoicePaused(
   todayIso: string
 ): boolean {
   return Boolean(invoice.paused_until && invoice.paused_until >= todayIso);
+}
+
+export type InvoiceListFilter = "all" | "active" | "overdue" | "paid";
+
+/** Filters invoices by status tab and optional case-insensitive search query. */
+export function filterInvoices(
+  invoices: readonly Invoice[],
+  {
+    status,
+    query,
+    todayIso,
+  }: {
+    status: InvoiceListFilter;
+    query?: string;
+    todayIso: string;
+  }
+): Invoice[] {
+  const normalizedQuery = query?.trim().toLowerCase() ?? "";
+
+  return invoices.filter((invoice) => {
+    if (status === "active" && !isInvoiceActive(invoice)) return false;
+    if (status === "overdue" && !isInvoiceOverdue(invoice, todayIso))
+      return false;
+    if (status === "paid" && isInvoiceActive(invoice)) return false;
+
+    if (!normalizedQuery) return true;
+
+    return (
+      invoice.title.toLowerCase().includes(normalizedQuery) ||
+      invoice.client_name.toLowerCase().includes(normalizedQuery) ||
+      invoice.client_email.toLowerCase().includes(normalizedQuery) ||
+      invoice.currency.toLowerCase().includes(normalizedQuery)
+    );
+  });
 }
 
 const CURRENCY_LOCALE: Record<Currency, string> = {
@@ -245,6 +283,26 @@ export type InvoiceFormState = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Checks for CR/LF or other control chars that could break email headers. */
+export function hasControlOrNewline(value: string): boolean {
+  return /[\r\n\x00-\x1f\x7f]/.test(value);
+}
+
+/** Validates an optional display/studio name used to sign reminder emails. */
+export function validateDisplayName(
+  raw: string
+): { ok: true; value: string | null } | { ok: false; error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { ok: true, value: null };
+  if (hasControlOrNewline(trimmed)) {
+    return { ok: false, error: "Name cannot contain line breaks." };
+  }
+  if (trimmed.length > 80) {
+    return { ok: false, error: "Keep your name under 80 characters." };
+  }
+  return { ok: true, value: trimmed };
+}
+
 /** Validates a calendar YYYY-MM-DD date string in UTC (rejects impossible dates like 2026-02-31). */
 export function isValidIsoDate(value: string): boolean {
   if (!ISO_DATE_RE.test(value)) return false;
@@ -283,10 +341,14 @@ export function validateInvoiceFormData(
   const pausedUntilRaw = String(formData.get("paused_until") ?? "").trim();
 
   if (!title) fieldErrors.title = "Enter a short invoice title.";
+  else if (hasControlOrNewline(title))
+    fieldErrors.title = "Invoice title cannot contain line breaks.";
   else if (title.length > 140)
     fieldErrors.title = "Keep the title under 140 characters.";
 
   if (!clientName) fieldErrors.client_name = "Enter the client's name.";
+  else if (hasControlOrNewline(clientName))
+    fieldErrors.client_name = "Client name cannot contain line breaks.";
   else if (clientName.length > 120)
     fieldErrors.client_name = "Client name is too long.";
 
@@ -318,6 +380,9 @@ export function validateInvoiceFormData(
     receivedRaw === "" ? 0 : parseMajorToMinor(receivedRaw);
   if (receivedMinor === null) {
     fieldErrors.amount_received = "Enter a valid amount received (0 or more).";
+  } else if (amountMinor && receivedMinor > amountMinor) {
+    fieldErrors.amount_received =
+      "Amount received cannot exceed the invoice amount.";
   }
 
   if (!isValidIsoDate(dueDate)) {
@@ -326,16 +391,24 @@ export function validateInvoiceFormData(
 
   let paymentLink: string | null = null;
   if (paymentLinkRaw) {
-    try {
-      const parsed = new URL(paymentLinkRaw);
-      if (parsed.protocol !== "https:") {
-        fieldErrors.payment_link = "Payment link must start with https://.";
-      } else {
-        paymentLink = parsed.toString();
-      }
-    } catch {
+    if (paymentLinkRaw.length > 500) {
       fieldErrors.payment_link =
-        "Enter a valid URL (e.g. https://rzp.io/l/...).";
+        "Payment link is too long (max 500 characters).";
+    } else {
+      try {
+        const parsed = new URL(paymentLinkRaw);
+        if (parsed.protocol !== "https:") {
+          fieldErrors.payment_link = "Payment link must start with https://.";
+        } else if (parsed.username || parsed.password) {
+          fieldErrors.payment_link =
+            "Payment link cannot contain embedded credentials.";
+        } else {
+          paymentLink = parsed.toString();
+        }
+      } catch {
+        fieldErrors.payment_link =
+          "Enter a valid URL (e.g. https://rzp.io/l/...).";
+      }
     }
   }
 

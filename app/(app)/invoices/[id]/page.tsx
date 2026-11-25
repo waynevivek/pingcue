@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ArrowLeft, ExternalLink, MessageSquare } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,28 +26,51 @@ import {
   isInvoicePaused,
   minorToMajorInput,
 } from "@/lib/invoices";
-import { buildWhatsappNudge, getNextReminderOffset } from "@/lib/reminders";
+import {
+  buildReminderEmail,
+  buildWhatsappNudge,
+  getNextReminderOffset,
+  getSentOffsetsForDueDate,
+  type ReminderLog,
+} from "@/lib/reminders";
 import { pauseInvoiceAction, recordPaymentAction } from "../actions";
 import { DeleteInvoiceButton } from "../DeleteInvoiceButton";
+import {
+  InlineEmailPreview,
+  type InlineEmailPreviewStep,
+} from "../InlineEmailPreview";
 import { InvoiceForm } from "../InvoiceForm";
+import { LocalTimestamp } from "../LocalTimestamp";
+import { SendNowButton } from "../SendNowButton";
 import { SendTestEmailButton } from "../SendTestEmailButton";
 import { InvoiceStatusBadges } from "../StatusBadges";
+import { SubmitButton } from "../SubmitButton";
+import { WhatsappNudgeActions } from "../WhatsappNudgeActions";
 
 export const metadata: Metadata = {
   title: "Invoice details — PingCue",
 };
 
-function formatSentTimestamp(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(date);
+const ACTION_NOTICES: Record<string, string> = {
+  payment_saved: "Payment progress updated.",
+  marked_paid: "Invoice marked fully paid—automated reminders stopped.",
+  paused: "Automated reminders paused.",
+  resumed: "Automated reminders resumed.",
+};
+
+function getDeliveryBadge(
+  status: ReminderLog["delivery_status"]
+): { label: string; variant: "neutral" | "paid" | "overdue" } {
+  switch (status) {
+    case "delivered":
+      return { label: "Delivered", variant: "paid" };
+    case "bounced":
+      return { label: "Bounced", variant: "overdue" };
+    case "complained":
+      return { label: "Spam complaint", variant: "overdue" };
+    default:
+      return { label: "Sent", variant: "neutral" };
+  }
 }
 
 async function InvoiceDetailContent({
@@ -67,6 +89,12 @@ async function InvoiceDetailContent({
   const rawActionError = Array.isArray(resolvedSearchParams.actionError)
     ? resolvedSearchParams.actionError[0]
     : resolvedSearchParams.actionError;
+  const rawActionNotice = Array.isArray(resolvedSearchParams.actionNotice)
+    ? resolvedSearchParams.actionNotice[0]
+    : resolvedSearchParams.actionNotice;
+  const actionNoticeMessage = rawActionNotice
+    ? ACTION_NOTICES[rawActionNotice]
+    : undefined;
   const todayIso = getTodayIsoDate();
 
   const [invoice, profile, logs] = await Promise.all([
@@ -85,9 +113,7 @@ async function InvoiceDetailContent({
   );
   const active = isInvoiceActive(invoice);
   const paused = isInvoicePaused(invoice, todayIso);
-  const sentEmailOffsets = new Set(
-    logs.filter((log) => log.channel === "email").map((log) => log.offset_days)
-  );
+  const sentEmailOffsets = getSentOffsetsForDueDate(logs, invoice.due_date);
   const nextOffset = getNextReminderOffset(invoice, sentEmailOffsets, todayIso);
   const isFoundingPass = profile.plan === "founding_pass";
   const whatsapp = buildWhatsappNudge({
@@ -95,9 +121,39 @@ async function InvoiceDetailContent({
     offsetDays: nextOffset,
     isUnlocked: isFoundingPass,
   });
+  const replyToEmail = profile.email || user.email || "";
+  const previewSteps: InlineEmailPreviewStep[] = [...invoice.reminder_offsets]
+    .sort((a, b) => a - b)
+    .map((offset) => {
+      const generated = buildReminderEmail({
+        invoice,
+        offsetDays: offset,
+        freelancerEmail: replyToEmail,
+        freelancerName: profile.display_name,
+        isTest: false,
+      });
+      return {
+        offset,
+        offsetBadge: formatOffsetBadge(offset),
+        toneLabel: getOffsetTone(offset),
+        scheduledDate: formatShortDate(addDaysIso(invoice.due_date, offset)),
+        wasSent: sentEmailOffsets.has(offset),
+        subject: generated.subject,
+        text: generated.text,
+      };
+    });
 
   return (
     <div className="space-y-8">
+      {actionNoticeMessage && (
+        <div
+          role="status"
+          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm font-medium text-[#14532D]"
+        >
+          {actionNoticeMessage}
+        </div>
+      )}
+
       {rawActionError && (
         <div
           role="alert"
@@ -173,9 +229,9 @@ async function InvoiceDetailContent({
                 className="mt-1.5 h-10 font-mono"
               />
             </div>
-            <Button type="submit" variant="outline">
+            <SubmitButton variant="outline" pendingLabel="Saving...">
               Save payment
-            </Button>
+            </SubmitButton>
           </form>
 
           {active && (
@@ -184,9 +240,13 @@ async function InvoiceDetailContent({
               className="mt-3"
             >
               <input type="hidden" name="mark_full" value="1" />
-              <Button type="submit" variant="success" className="w-full">
+              <SubmitButton
+                variant="success"
+                pendingLabel="Marking paid..."
+                className="w-full"
+              >
                 Mark fully paid ({formatMoney(invoice.amount_minor, invoice.currency)})
-              </Button>
+              </SubmitButton>
             </form>
           )}
         </Card>
@@ -205,17 +265,21 @@ async function InvoiceDetailContent({
           <div className="mt-4 flex flex-wrap gap-2">
             <form action={pauseInvoiceAction.bind(null, invoice.id)}>
               <input type="hidden" name="mode" value="plus7" />
-              <Button type="submit" size="sm">
+              <SubmitButton size="sm" pendingLabel="Pausing...">
                 Pause 7 days
-              </Button>
+              </SubmitButton>
             </form>
 
             {paused && (
               <form action={pauseInvoiceAction.bind(null, invoice.id)}>
                 <input type="hidden" name="mode" value="resume" />
-                <Button type="submit" variant="outline" size="sm">
+                <SubmitButton
+                  variant="outline"
+                  size="sm"
+                  pendingLabel="Resuming..."
+                >
                   Resume reminders
-                </Button>
+                </SubmitButton>
               </form>
             )}
           </div>
@@ -238,9 +302,9 @@ async function InvoiceDetailContent({
                 className="mt-1.5 h-10 font-mono"
               />
             </div>
-            <Button type="submit" variant="outline">
+            <SubmitButton variant="outline" pendingLabel="Updating...">
               Set pause date
-            </Button>
+            </SubmitButton>
           </form>
         </Card>
       </div>
@@ -264,8 +328,22 @@ async function InvoiceDetailContent({
             check tone and formatting before anything goes to your client.
           </p>
 
-          <div className="mt-4">
+          <div className="mt-4 space-y-4">
+            <InlineEmailPreview
+              steps={previewSteps}
+              defaultOffset={nextOffset}
+              clientEmail={invoice.client_email}
+              replyTo={replyToEmail}
+            />
             <SendTestEmailButton invoiceId={invoice.id} />
+            {active && !sentEmailOffsets.has(nextOffset) && (
+              <SendNowButton
+                invoiceId={invoice.id}
+                clientEmail={invoice.client_email}
+                offsetLabel={formatOffsetBadge(nextOffset)}
+                toneLabel={getOffsetTone(nextOffset)}
+              />
+            )}
           </div>
         </Card>
 
@@ -290,33 +368,13 @@ async function InvoiceDetailContent({
               <div className="mt-3 rounded-lg border border-border bg-background/70 p-3 text-xs leading-relaxed text-foreground">
                 {whatsapp.message}
               </div>
-              <div className="mt-4">
-                {!active ? (
-                  <p className="text-xs font-medium text-success-foreground">
-                    Invoice is marked paid—no WhatsApp nudge needed.
-                  </p>
-                ) : whatsapp.waUrl ? (
-                  <Button asChild variant="success">
-                    <a
-                      href={whatsapp.waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                      <span>Send on WhatsApp</span>
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </a>
-                  </Button>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Add a client WhatsApp number in the Edit form below (e.g.{" "}
-                    <span className="font-mono text-foreground">
-                      919876543210
-                    </span>
-                    ) to enable 1-click WhatsApp nudges.
-                  </p>
-                )}
-              </div>
+              <WhatsappNudgeActions
+                invoiceId={invoice.id}
+                offsetDays={nextOffset}
+                message={whatsapp.message}
+                waUrl={whatsapp.waUrl}
+                active={active}
+              />
             </>
           ) : (
             <>
@@ -425,27 +483,43 @@ async function InvoiceDetailContent({
           </p>
         ) : (
           <ul className="mt-4 divide-y divide-black/[0.06] text-xs">
-            {logs.map((log) => (
-              <li
-                key={log.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-2.5"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="neutral">
-                    {formatOffsetBadge(log.offset_days)}
-                  </Badge>
-                  <Badge variant={log.channel === "email" ? "paid" : "primary"}>
-                    {log.channel === "email" ? "Scheduled email" : "Test email"}
-                  </Badge>
-                  <span className="text-[#52525B]">
-                    to {log.recipient_email}
-                  </span>
-                </div>
-                <span className="font-mono text-[#52525B]">
-                  {formatSentTimestamp(log.sent_at)} UTC
-                </span>
-              </li>
-            ))}
+            {logs.map((log) => {
+              const delivery =
+                log.channel === "email"
+                  ? getDeliveryBadge(log.delivery_status)
+                  : null;
+              const channelBadge =
+                log.channel === "email"
+                  ? { label: "Scheduled email", variant: "paid" as const }
+                  : log.channel === "whatsapp"
+                    ? { label: "WhatsApp nudge", variant: "firm" as const }
+                    : { label: "Test email", variant: "primary" as const };
+
+              return (
+                <li
+                  key={log.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2.5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="neutral">
+                      {formatOffsetBadge(log.offset_days)}
+                    </Badge>
+                    <Badge variant={channelBadge.variant}>
+                      {channelBadge.label}
+                    </Badge>
+                    {delivery && (
+                      <Badge variant={delivery.variant}>{delivery.label}</Badge>
+                    )}
+                    <span className="text-[#52525B]">
+                      {log.channel === "whatsapp"
+                        ? `via WhatsApp ${log.recipient_email}`
+                        : `to ${log.recipient_email}`}
+                    </span>
+                  </div>
+                  <LocalTimestamp iso={log.sent_at} />
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>

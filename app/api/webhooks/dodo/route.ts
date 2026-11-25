@@ -1,13 +1,90 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/db";
 import {
+  extractDodoCustomerId,
   extractDodoMetadataString,
+  extractDodoPaymentId,
   isDodoLiveMode,
   isFoundingPassPaymentEvent,
+  isRevocationWebhookEvent,
   verifyDodoWebhook,
   type DodoWebhookEvent,
 } from "@/lib/dodo";
 import { getSupabaseAdminEnv } from "@/lib/supabase-env";
+
+type AdminSupabaseClient = ReturnType<typeof createSupabaseAdminClient>;
+
+function extractBuyerIdentity(event: DodoWebhookEvent) {
+  const metadata = event.data?.metadata;
+  const userId = extractDodoMetadataString(metadata, "user_id");
+  const rawCustomerEmail =
+    typeof event.data?.customer?.email === "string"
+      ? event.data.customer.email.trim()
+      : null;
+  const rawEmail =
+    extractDodoMetadataString(metadata, "user_email") ??
+    (rawCustomerEmail || null);
+  const fallbackEmail = rawEmail ? rawEmail.toLowerCase() : null;
+
+  return {
+    userId,
+    fallbackEmail,
+    paymentId: extractDodoPaymentId(event),
+    customerId: extractDodoCustomerId(event),
+  };
+}
+
+async function findProfileForRevocation(
+  supabase: AdminSupabaseClient,
+  identity: ReturnType<typeof extractBuyerIdentity>
+): Promise<{ id: string } | null> {
+  if (identity.paymentId) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("dodo_payment_id", identity.paymentId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to look up profile by payment ID: ${error.message}`);
+    }
+    if (data?.id) {
+      return { id: data.id as string };
+    }
+  }
+
+  if (identity.userId) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", identity.userId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to look up profile by user ID: ${error.message}`);
+    }
+    if (data?.id) {
+      return { id: data.id as string };
+    }
+  }
+
+  if (identity.fallbackEmail) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", identity.fallbackEmail)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to look up profile by email: ${error.message}`);
+    }
+    if (data?.id) {
+      return { id: data.id as string };
+    }
+  }
+
+  return null;
+}
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.DODO_PAYMENTS_WEBHOOK_KEY?.trim();
@@ -63,6 +140,26 @@ export async function POST(request: Request) {
   const eventType = event.type ?? event.event_type ?? "unknown";
   const supabase = createSupabaseAdminClient();
 
+  // Enforce idempotency before mutating profiles so replayed deliveries cannot re-unlock after a refund.
+  const { data: alreadyProcessed, error: dedupeError } = await supabase
+    .from("processed_webhooks")
+    .select("webhook_id")
+    .eq("webhook_id", webhookId)
+    .maybeSingle();
+
+  if (dedupeError) {
+    return NextResponse.json(
+      { error: `Failed to check webhook idempotency: ${dedupeError.message}` },
+      { status: 500 }
+    );
+  }
+
+  if (alreadyProcessed) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
+  let unmatchedRevocation = false;
+
   if (eventType === "payment.succeeded") {
     const expectedProductId = process.env.DODO_FOUNDING_PASS_PRODUCT_ID?.trim();
     if (!isFoundingPassPaymentEvent(event, expectedProductId)) {
@@ -77,16 +174,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, ignored: true });
     }
 
-    const metadata = event.data?.metadata;
-    const userId = extractDodoMetadataString(metadata, "user_id");
-    const rawCustomerEmail =
-      typeof event.data?.customer?.email === "string"
-        ? event.data.customer.email.trim()
-        : null;
-    const rawEmail =
-      extractDodoMetadataString(metadata, "user_email") ??
-      (rawCustomerEmail || null);
-    const fallbackEmail = rawEmail ? rawEmail.toLowerCase() : null;
+    const { userId, fallbackEmail, paymentId, customerId } =
+      extractBuyerIdentity(event);
 
     if (!userId && !fallbackEmail) {
       return NextResponse.json(
@@ -94,6 +183,13 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    const unlockPatch = {
+      plan: "founding_pass" as const,
+      refunded_at: null,
+      ...(paymentId ? { dodo_payment_id: paymentId } : {}),
+      ...(customerId ? { dodo_customer_id: customerId } : {}),
+    };
 
     try {
       const nowIso = new Date().toISOString();
@@ -119,7 +215,7 @@ export async function POST(request: Request) {
           const { data: updatedProfile, error: updateError } = await supabase
             .from("profiles")
             .update({
-              plan: "founding_pass",
+              ...unlockPatch,
               founding_pass_unlocked_at:
                 existingProfile.founding_pass_unlocked_at ?? nowIso,
             })
@@ -167,7 +263,7 @@ export async function POST(request: Request) {
                 {
                   id: authData.user.id,
                   email: resolvedEmail,
-                  plan: "founding_pass",
+                  ...unlockPatch,
                   founding_pass_unlocked_at: nowIso,
                 },
                 { onConflict: "id" }
@@ -212,7 +308,7 @@ export async function POST(request: Request) {
             await supabase
               .from("profiles")
               .update({
-                plan: "founding_pass",
+                ...unlockPatch,
                 founding_pass_unlocked_at:
                   existingByEmail.founding_pass_unlocked_at ?? nowIso,
               })
@@ -246,7 +342,7 @@ export async function POST(request: Request) {
         JSON.stringify({
           tag: "PINGCUE_DODO_UNLOCK",
           webhookId,
-          paymentId: event.data?.payment_id ?? null,
+          paymentId,
           userId: unlockedProfileId,
         })
       );
@@ -257,6 +353,60 @@ export async function POST(request: Request) {
             err instanceof Error
               ? err.message
               : "Unexpected error unlocking Founding Pass.",
+        },
+        { status: 500 }
+      );
+    }
+  } else if (isRevocationWebhookEvent(eventType, event)) {
+    const identity = extractBuyerIdentity(event);
+    try {
+      const matchedProfile = await findProfileForRevocation(supabase, identity);
+
+      if (matchedProfile) {
+        const { error: revokeError } = await supabase
+          .from("profiles")
+          .update({
+            plan: "free",
+            refunded_at: new Date().toISOString(),
+          })
+          .eq("id", matchedProfile.id);
+
+        if (revokeError) {
+          return NextResponse.json(
+            {
+              error: `Failed to revoke Founding Pass: ${revokeError.message}`,
+            },
+            { status: 500 }
+          );
+        }
+
+        console.info(
+          JSON.stringify({
+            tag: "PINGCUE_DODO_REVOKE",
+            webhookId,
+            eventType,
+            paymentId: identity.paymentId,
+            userId: matchedProfile.id,
+          })
+        );
+      } else {
+        unmatchedRevocation = true;
+        console.info(
+          JSON.stringify({
+            tag: "PINGCUE_DODO_REVOKE_UNMATCHED",
+            webhookId,
+            eventType,
+            paymentId: identity.paymentId,
+          })
+        );
+      }
+    } catch (err) {
+      return NextResponse.json(
+        {
+          error:
+            err instanceof Error
+              ? err.message
+              : "Unexpected error processing revocation webhook.",
         },
         { status: 500 }
       );
@@ -278,5 +428,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json(
+    unmatchedRevocation ? { received: true, unmatched: true } : { received: true }
+  );
 }

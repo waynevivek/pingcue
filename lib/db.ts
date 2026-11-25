@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Invoice, Profile } from "./invoices";
+import type { Currency, Invoice, Profile } from "./invoices";
 import type { ReminderLog } from "./reminders";
 import {
   getSupabaseAdminEnv,
@@ -76,14 +76,51 @@ export async function getUserProfile(
   fallbackEmail: string
 ): Promise<Profile> {
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, plan, founding_pass_unlocked_at")
+    .select(
+      "id, email, plan, founding_pass_unlocked_at, display_name, default_currency, notify_on_send, dodo_payment_id"
+    )
     .eq("id", userId)
     .maybeSingle();
 
   if (data) {
-    return data as Profile;
+    return {
+      id: data.id as string,
+      email: (data.email as string) || fallbackEmail,
+      plan: data.plan === "founding_pass" ? "founding_pass" : "free",
+      founding_pass_unlocked_at:
+        (data.founding_pass_unlocked_at as string | null) ?? null,
+      display_name: (data.display_name as string | null) ?? null,
+      default_currency:
+        (data.default_currency as Currency | null) ?? "INR",
+      notify_on_send:
+        typeof data.notify_on_send === "boolean" ? data.notify_on_send : true,
+      dodo_payment_id: (data.dodo_payment_id as string | null) ?? null,
+    };
+  }
+
+  // Fallback for pre-migration schemas so existing Founding Pass accounts keep their plan.
+  if (error) {
+    const { data: legacy } = await supabase
+      .from("profiles")
+      .select("id, email, plan, founding_pass_unlocked_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (legacy) {
+      return {
+        id: legacy.id as string,
+        email: (legacy.email as string) || fallbackEmail,
+        plan: legacy.plan === "founding_pass" ? "founding_pass" : "free",
+        founding_pass_unlocked_at:
+          (legacy.founding_pass_unlocked_at as string | null) ?? null,
+        display_name: null,
+        default_currency: "INR",
+        notify_on_send: true,
+        dodo_payment_id: null,
+      };
+    }
   }
 
   return {
@@ -91,7 +128,27 @@ export async function getUserProfile(
     email: fallbackEmail,
     plan: "free",
     founding_pass_unlocked_at: null,
+    display_name: null,
+    default_currency: "INR",
+    notify_on_send: true,
+    dodo_payment_id: null,
   };
+}
+
+export async function isEmailSuppressed(email: string): Promise<boolean> {
+  if (!getSupabaseAdminEnv()) return false;
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return false;
+
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("suppressed_emails")
+    .select("email")
+    .eq("email", cleanEmail)
+    .maybeSingle();
+
+  if (error) return false;
+  return Boolean(data);
 }
 
 export async function listInvoices(userId: string): Promise<Invoice[]> {

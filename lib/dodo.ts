@@ -95,12 +95,48 @@ export type DodoWebhookEvent = {
   event_type?: string;
   data?: {
     payment_id?: string;
+    refund_id?: string;
+    dispute_id?: string;
+    is_partial?: boolean;
     status?: string;
-    customer?: { email?: string | null };
+    customer?: {
+      customer_id?: string | null;
+      email?: string | null;
+    };
     metadata?: Record<string, unknown>;
     product_cart?: Array<{ product_id?: string | null; quantity?: number }>;
   };
 };
+
+export function extractDodoPaymentId(event: DodoWebhookEvent): string | null {
+  const raw = event.data?.payment_id;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+export function extractDodoCustomerId(event: DodoWebhookEvent): string | null {
+  const raw = event.data?.customer?.customer_id;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+const REVOCATION_DISPUTE_EVENTS = new Set([
+  "dispute.opened",
+  "dispute.accepted",
+  "dispute.lost",
+]);
+
+export function isRevocationWebhookEvent(
+  eventType: string,
+  event: DodoWebhookEvent
+): boolean {
+  if (eventType === "refund.succeeded") {
+    return event.data?.is_partial !== true;
+  }
+  return REVOCATION_DISPUTE_EVENTS.has(eventType);
+}
 
 export function extractDodoMetadataString(
   metadata: Record<string, unknown> | undefined,

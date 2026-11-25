@@ -31,6 +31,7 @@ export function FoundingPassButton({
 }: FoundingPassButtonProps) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">(
     "idle"
   );
@@ -71,6 +72,7 @@ export function FoundingPassButton({
           event: "founding_pass_email",
           source,
           email: trimmed,
+          website,
         }),
       });
 
@@ -187,6 +189,18 @@ export function FoundingPassButton({
               )}
 
               <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+                <div className="sr-only" aria-hidden="true">
+                  <Label htmlFor={`founding-website-${source}`}>Website</Label>
+                  <Input
+                    id={`founding-website-${source}`}
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </div>
                 <div>
                   <Label htmlFor={`founding-email-${source}`}>Work email</Label>
                   <Input

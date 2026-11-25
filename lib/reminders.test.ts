@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Invoice } from "./invoices.ts";
 import {
+  buildCronAlertEmail,
+  buildFreelancerDigestEmail,
   buildReminderEmail,
   buildWhatsappNudge,
   findDueReminderOffset,
   getNextReminderOffset,
+  getSentOffsetsForDueDate,
 } from "./reminders.ts";
 
 function makeInvoice(overrides: Partial<Invoice> = {}): Invoice {
@@ -132,4 +135,78 @@ test("buildWhatsappNudge hides full text and wa.me URL when locked for Free plan
   assert.ok(locked.teaserLine.length <= 42);
   assert.ok(!locked.teaserLine.includes("secret-pay-link"));
   assert.ok(!locked.blurredRemainder.includes("secret-pay-link"));
+});
+
+test("getSentOffsetsForDueDate isolates rescheduled due dates while preserving legacy logs", () => {
+  const logs = [
+    { channel: "test_email" as const, offset_days: -3, scheduled_for: null },
+    {
+      channel: "email" as const,
+      offset_days: -3,
+      scheduled_for: "2026-11-17", // for original due_date 2026-11-20
+    },
+    {
+      channel: "email" as const,
+      offset_days: 0,
+      scheduled_for: null, // legacy row without scheduled_for
+    },
+  ];
+
+  const originalSet = getSentOffsetsForDueDate(logs, "2026-11-20");
+  assert.equal(originalSet.has(-3), true);
+  assert.equal(originalSet.has(0), true);
+
+  // Pushing due_date forward to 2026-11-28 clears the old -3d lock while keeping legacy null
+  const rescheduledSet = getSentOffsetsForDueDate(logs, "2026-11-28");
+  assert.equal(rescheduledSet.has(-3), false);
+  assert.equal(rescheduledSet.has(0), true);
+});
+
+test("buildReminderEmail signs off with freelancerName and uses #111111 CTA", () => {
+  const inv = makeInvoice();
+  const content = buildReminderEmail({
+    invoice: inv,
+    offsetDays: 0,
+    freelancerEmail: "vivek@studio.com",
+    freelancerName: "Vivek <Studio>",
+  });
+
+  assert.match(content.text, /Thanks,\nVivek <Studio>/);
+  assert.match(content.text, /Vivek <Studio> \(vivek@studio\.com\)/);
+  assert.ok(content.html.includes("background:#111111"));
+  assert.ok(content.html.includes("Vivek &lt;Studio&gt;"));
+});
+
+test("buildFreelancerDigestEmail and buildCronAlertEmail format clean escaped summaries", () => {
+  const digest = buildFreelancerDigestEmail({
+    freelancerName: "Vivek",
+    freelancerEmail: "vivek@studio.com",
+    dateIso: "2026-11-20",
+    items: [
+      {
+        title: "Design Retainer",
+        clientName: "Priya",
+        clientEmail: "priya@northstar.co",
+        amountFormatted: "₹20,000",
+        offsetDays: 7,
+        tone: "firm",
+      },
+    ],
+  });
+  assert.match(digest.subject, /sent 1 reminder today \(Priya\)/);
+  assert.match(digest.text, /\+7d \(firm\)/);
+
+  const alert = buildCronAlertEmail({
+    dateIso: "2026-11-20",
+    summary: {
+      checked: 10,
+      due: 3,
+      sent: 2,
+      failed: 1,
+      skippedCap: 0,
+      errors: ["Invoice 1: <bad>"],
+    },
+  });
+  assert.match(alert.subject, /1 failed on 2026-11-20/);
+  assert.ok(alert.html.includes("&lt;bad&gt;"));
 });

@@ -30,7 +30,7 @@ export async function sendReminderEmail({
   html,
 }: {
   to: string;
-  replyTo: string;
+  replyTo?: string;
   subject: string;
   text: string;
   html: string;
@@ -60,7 +60,7 @@ export async function sendReminderEmail({
     const { data, error } = await resend.emails.send({
       from: getResendFromEmail(),
       to: [to],
-      replyTo,
+      ...(replyTo ? { replyTo } : {}),
       subject,
       text,
       html,

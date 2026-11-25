@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { SUPPORT_EMAIL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — PingCue",
@@ -76,10 +77,10 @@ export default function PrivacyPage() {
                   You may delete individual invoices inside your dashboard or
                   request full account deletion at any time by emailing{" "}
                   <a
-                    href="mailto:pingcue.support@gmail.com"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     className="font-semibold text-[#111111] underline hover:text-[#52525B]"
                   >
-                    pingcue.support@gmail.com
+                    {SUPPORT_EMAIL}
                   </a>
                   .
                 </p>

@@ -69,6 +69,7 @@ async function NewInvoiceContent() {
         <InvoiceForm
           mode="create"
           defaultDueDate={addDaysIso(todayIso, 7)}
+          defaultCurrency={profile.default_currency}
           disabled={atFreeLimit}
         />
       </Card>

@@ -7,6 +7,7 @@ import {
   createSupabaseAdminClient,
   getInvoiceById,
   getUserProfile,
+  isEmailSuppressed,
   listReminderLogs,
   requireUser,
 } from "@/lib/db";
@@ -15,16 +16,27 @@ import {
   addDaysIso,
   formatOffsetBadge,
   getTodayIsoDate,
+  isInvoiceActive,
   isValidIsoDate,
   parseMajorToMinor,
   validateInvoiceFormData,
   type InvoiceFormState,
 } from "@/lib/invoices";
-import { buildReminderEmail, getNextReminderOffset } from "@/lib/reminders";
+import {
+  buildReminderEmail,
+  getNextReminderOffset,
+  getSentOffsetsForDueDate,
+} from "@/lib/reminders";
+import { createMemoryRateLimiter } from "@/lib/security";
 import { getSupabaseAdminEnv } from "@/lib/supabase-env";
 
 const TEST_EMAIL_HOURLY_LIMIT = 5;
 const TEST_EMAIL_DAILY_LIMIT = 10;
+
+const manualSendRateLimiter = createMemoryRateLimiter({
+  maxRequests: 10,
+  windowMs: 24 * 60 * 60 * 1000,
+});
 
 function revalidateInvoicePaths(invoiceId?: string) {
   revalidatePath("/dashboard");
@@ -176,6 +188,13 @@ export async function recordPaymentAction(
     );
   }
 
+  if (receivedMinor > invoice.amount_minor) {
+    redirectWithActionError(
+      invoiceId,
+      "Amount received cannot exceed the invoice amount."
+    );
+  }
+
   const wasPaid = invoice.amount_received_minor >= invoice.amount_minor;
   const willBeActive = receivedMinor < invoice.amount_minor;
   if (wasPaid && willBeActive) {
@@ -211,7 +230,11 @@ export async function recordPaymentAction(
   }
 
   revalidateInvoicePaths(invoiceId);
-  redirect(`/invoices/${invoiceId}`);
+  const notice =
+    markFull || receivedMinor >= invoice.amount_minor
+      ? "marked_paid"
+      : "payment_saved";
+  redirect(`/invoices/${invoiceId}?actionNotice=${notice}`);
 }
 
 export async function pauseInvoiceAction(
@@ -248,7 +271,9 @@ export async function pauseInvoiceAction(
   }
 
   revalidateInvoicePaths(invoiceId);
-  redirect(`/invoices/${invoiceId}`);
+  redirect(
+    `/invoices/${invoiceId}?actionNotice=${mode === "resume" ? "resumed" : "paused"}`
+  );
 }
 
 export type DeleteInvoiceState = {
@@ -334,15 +359,16 @@ export async function sendTestEmailAction(
     };
   }
 
-  const invoice = await getInvoiceById(user.id, invoiceId);
+  const [invoice, profile, logs] = await Promise.all([
+    getInvoiceById(user.id, invoiceId),
+    getUserProfile(user.id, user.email),
+    listReminderLogs(user.id, invoiceId),
+  ]);
   if (!invoice) {
     return { error: "Invoice not found." };
   }
 
-  const logs = await listReminderLogs(user.id, invoiceId);
-  const sentOffsets = new Set(
-    logs.filter((log) => log.channel === "email").map((log) => log.offset_days)
-  );
+  const sentOffsets = getSentOffsetsForDueDate(logs, invoice.due_date);
   const offsetDays = getNextReminderOffset(
     invoice,
     sentOffsets,
@@ -353,6 +379,7 @@ export async function sendTestEmailAction(
     invoice,
     offsetDays,
     freelancerEmail: user.email,
+    freelancerName: profile.display_name,
     isTest: true,
   });
 
@@ -374,6 +401,7 @@ export async function sendTestEmailAction(
     offset_days: offsetDays,
     channel: "test_email",
     recipient_email: user.email,
+    delivery_status: "sent",
     resend_id: result.id || null,
   });
 
@@ -385,4 +413,175 @@ export async function sendTestEmailAction(
   return {
     success: `Test email (${formatOffsetBadge(offsetDays)}) sent to ${user.email}.`,
   };
+}
+
+export type SendNowState = {
+  error?: string;
+  success?: string;
+};
+
+export async function sendReminderNowAction(
+  invoiceId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prevState: SendNowState
+): Promise<SendNowState> {
+  const { user } = await requireUser();
+  if (!user.email) {
+    return { error: "Your account does not have an email address set." };
+  }
+
+  if (!user.email_confirmed_at) {
+    return {
+      error:
+        "Please confirm your account email address before sending reminders to clients.",
+    };
+  }
+
+  if (!getSupabaseAdminEnv()) {
+    return {
+      error:
+        "Server email configuration is incomplete. Add SUPABASE_SERVICE_ROLE_KEY.",
+    };
+  }
+
+  const [invoice, profile, logs] = await Promise.all([
+    getInvoiceById(user.id, invoiceId),
+    getUserProfile(user.id, user.email),
+    listReminderLogs(user.id, invoiceId),
+  ]);
+
+  if (!invoice) {
+    return { error: "Invoice not found." };
+  }
+
+  if (!isInvoiceActive(invoice)) {
+    return { error: "This invoice is already marked paid." };
+  }
+
+  if (await isEmailSuppressed(invoice.client_email)) {
+    return {
+      error:
+        "This client email previously bounced or marked reminders as spam, so sending is paused to protect delivery.",
+    };
+  }
+
+  const todayIso = getTodayIsoDate();
+  const sentOffsets = getSentOffsetsForDueDate(logs, invoice.due_date);
+  const offsetDays = getNextReminderOffset(invoice, sentOffsets, todayIso);
+  if (sentOffsets.has(offsetDays)) {
+    return {
+      error:
+        "All scheduled reminder steps for the current due date have already been sent.",
+    };
+  }
+
+  if (!manualSendRateLimiter.check(user.id)) {
+    return {
+      error:
+        "Manual client reminder limit reached (10 per 24 hours). Scheduled cron reminders continue normally.",
+    };
+  }
+
+  const scheduledFor = addDaysIso(invoice.due_date, offsetDays);
+  const admin = createSupabaseAdminClient();
+
+  const { data: claimed, error: claimError } = await admin
+    .from("reminder_logs")
+    .insert({
+      invoice_id: invoice.id,
+      user_id: user.id,
+      offset_days: offsetDays,
+      channel: "email",
+      recipient_email: invoice.client_email,
+      delivery_status: "sent",
+      scheduled_for: scheduledFor,
+      resend_id: null,
+    })
+    .select("id")
+    .single();
+
+  if (claimError) {
+    if (claimError.code === "23505") {
+      return {
+        error:
+          "This reminder step was already sent for the current due date.",
+      };
+    }
+    return { error: `Could not prepare reminder send: ${claimError.message}` };
+  }
+
+  if (!claimed) {
+    return { error: "Could not acquire reminder send lock." };
+  }
+
+  const email = buildReminderEmail({
+    invoice,
+    offsetDays,
+    freelancerEmail: user.email,
+    freelancerName: profile.display_name,
+    isTest: false,
+  });
+
+  const result = await sendReminderEmail({
+    to: invoice.client_email,
+    replyTo: user.email,
+    subject: email.subject,
+    text: email.text,
+    html: email.html,
+  });
+
+  if (!result.ok) {
+    await admin.from("reminder_logs").delete().eq("id", claimed.id);
+    return { error: result.error };
+  }
+
+  const { error: updateError } = await admin
+    .from("reminder_logs")
+    .update({ resend_id: result.id || null })
+    .eq("id", claimed.id);
+
+  if (updateError) {
+    console.error("Failed to store manual reminder resend_id:", updateError.message);
+  }
+
+  revalidateInvoicePaths(invoiceId);
+  return {
+    success: `Reminder (${formatOffsetBadge(offsetDays)}) sent to ${invoice.client_email}.`,
+  };
+}
+
+export async function logWhatsappNudgeAction(
+  invoiceId: string,
+  offsetDays: number
+): Promise<void> {
+  if (!Number.isInteger(offsetDays)) return;
+  if (!getSupabaseAdminEnv()) return;
+
+  const { user } = await requireUser();
+  const [invoice, profile] = await Promise.all([
+    getInvoiceById(user.id, invoiceId),
+    getUserProfile(user.id, user.email ?? ""),
+  ]);
+
+  if (!invoice || profile.plan !== "founding_pass") {
+    return;
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from("reminder_logs").insert({
+    invoice_id: invoice.id,
+    user_id: user.id,
+    offset_days: offsetDays,
+    channel: "whatsapp",
+    recipient_email: invoice.client_whatsapp ?? invoice.client_email,
+    delivery_status: "sent",
+    resend_id: null,
+  });
+
+  if (error) {
+    console.error("Failed to record whatsapp nudge log:", error.message);
+    return;
+  }
+
+  revalidatePath(`/invoices/${invoiceId}`);
 }

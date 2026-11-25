@@ -5,36 +5,7 @@ import {
   isSupabaseConfigured,
 } from "@/lib/db";
 import { createFoundingPassCheckout, isDodoLiveMode } from "@/lib/dodo";
-
-function resolveCheckoutOrigin(request: Request): string | null {
-  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (rawAppUrl) {
-    try {
-      const parsed = new URL(rawAppUrl);
-      const isLocalhost =
-        parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-      if (process.env.NODE_ENV === "production") {
-        if (parsed.protocol === "https:" && !isLocalhost) {
-          return parsed.origin;
-        }
-        return null;
-      }
-      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
-        return parsed.origin;
-      }
-    } catch {
-      if (process.env.NODE_ENV === "production") {
-        return null;
-      }
-    }
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return null;
-  }
-
-  return new URL(request.url).origin;
-}
+import { resolveAppOrigin } from "@/lib/site-config";
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
@@ -55,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const origin = resolveCheckoutOrigin(request);
+  const origin = resolveAppOrigin(request.url);
   if (!origin) {
     return NextResponse.json(
       {

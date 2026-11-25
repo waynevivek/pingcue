@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { SUPPORT_EMAIL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Terms of Service — PingCue",
@@ -101,10 +102,10 @@ export default function TermsPage() {
                 <p className="mt-1.5">
                   Questions about these terms? Email{" "}
                   <a
-                    href="mailto:pingcue.support@gmail.com"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     className="font-semibold text-[#111111] underline hover:text-[#52525B]"
                   >
-                    pingcue.support@gmail.com
+                    {SUPPORT_EMAIL}
                   </a>
                   .
                 </p>

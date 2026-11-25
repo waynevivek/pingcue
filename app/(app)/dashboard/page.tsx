@@ -16,7 +16,9 @@ import {
   getTodayIsoDate,
   isInvoiceActive,
 } from "@/lib/invoices";
+import { SUPPORT_EMAIL } from "@/lib/site-config";
 import { InvoiceStatusBadges } from "../invoices/StatusBadges";
+import { CheckoutReturnHandler } from "./CheckoutReturnHandler";
 
 export const metadata: Metadata = {
   title: "Dashboard — PingCue",
@@ -42,39 +44,41 @@ async function DashboardContent({
   const checkoutParam = Array.isArray(resolvedParams.checkout)
     ? resolvedParams.checkout[0]
     : resolvedParams.checkout;
+  const upgradeParam = Array.isArray(resolvedParams.upgrade)
+    ? resolvedParams.upgrade[0]
+    : resolvedParams.upgrade;
+  const passwordResetParam = Array.isArray(resolvedParams.passwordReset)
+    ? resolvedParams.passwordReset[0]
+    : resolvedParams.passwordReset;
+
+  const normalizedStatus = statusParam?.toLowerCase();
+  const checkoutReturn = Boolean(checkoutParam);
   const checkoutFailed =
-    Boolean(checkoutParam) &&
-    (statusParam === "failed" || statusParam === "cancelled");
-  const checkoutSucceeded =
-    Boolean(checkoutParam) &&
+    checkoutReturn &&
+    (normalizedStatus === "failed" ||
+      normalizedStatus === "cancelled" ||
+      normalizedStatus === "canceled");
+  const checkoutExplicitSuccess =
+    checkoutReturn &&
     !checkoutFailed &&
-    (statusParam === "succeeded" || statusParam === "success");
+    (normalizedStatus === "succeeded" || normalizedStatus === "success");
+  const wantsUpgrade = upgradeParam === "1";
+  const passwordReset = passwordResetParam === "1";
   const activeInvoices = invoices.filter(isInvoiceActive);
   const currencyTotals = computeCurrencyTotals(invoices, todayIso);
   const isFree = profile.plan === "free";
 
   return (
     <div className="space-y-8">
-      {checkoutFailed && (
-        <div
-          role="alert"
-          className="rounded-2xl border border-[#FDE047] bg-[#FEF9C3] px-5 py-3.5 text-sm text-[#713F12]"
-        >
-          Payment didn&apos;t go through. No charge was made—try another
-          payment method or retry anytime.
-        </div>
-      )}
-
-      {checkoutSucceeded && (
-        <div
-          role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm text-[#14532D]"
-        >
-          {isFree
-            ? "Payment received! Your Founding Pass is unlocking—refresh in a moment if your plan badge still shows Free."
-            : "Founding Pass unlocked! Unlimited active invoices and 1-click WhatsApp nudges are now active."}
-        </div>
-      )}
+      <CheckoutReturnHandler
+        isFree={isFree}
+        checkoutReturn={checkoutReturn}
+        checkoutFailed={checkoutFailed}
+        checkoutExplicitSuccess={checkoutExplicitSuccess}
+        wantsUpgrade={wantsUpgrade}
+        passwordReset={passwordReset}
+        supportEmail={SUPPORT_EMAIL}
+      />
 
       {/* Header row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

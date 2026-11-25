@@ -1,6 +1,7 @@
 import {
   addDaysIso,
   formatMoney,
+  formatOffsetBadge,
   formatShortDate,
   getRemainingMinor,
   isInvoiceActive,
@@ -13,10 +14,32 @@ export interface ReminderLog {
   invoice_id: string;
   user_id: string;
   offset_days: number;
-  channel: "email" | "test_email";
+  channel: "email" | "test_email" | "whatsapp";
   recipient_email: string;
   resend_id: string | null;
+  scheduled_for?: string | null;
+  delivery_status?: "sent" | "delivered" | "bounced" | "complained";
   sent_at: string;
+}
+
+/**
+ * Returns scheduled offsets already sent for the invoice's current due_date.
+ * Legacy rows without scheduled_for still count as sent; rows from an earlier
+ * due_date are ignored after the user pushes due_date forward.
+ */
+export function getSentOffsetsForDueDate(
+  logs: readonly Pick<ReminderLog, "channel" | "offset_days" | "scheduled_for">[],
+  dueDate: string
+): Set<number> {
+  const sent = new Set<number>();
+  for (const log of logs) {
+    if (log.channel !== "email") continue;
+    const expectedDate = addDaysIso(dueDate, log.offset_days);
+    if (log.scheduled_for == null || log.scheduled_for === expectedDate) {
+      sent.add(log.offset_days);
+    }
+  }
+  return sent;
 }
 
 export type ReminderTone = "friendly" | "firm" | "final";
@@ -129,11 +152,13 @@ export function buildReminderEmail({
   invoice,
   offsetDays,
   freelancerEmail,
+  freelancerName,
   isTest = false,
 }: {
   invoice: Invoice;
   offsetDays: number;
   freelancerEmail: string;
+  freelancerName?: string | null;
   isTest?: boolean;
 }): ReminderEmailContent {
   const tone = getReminderToneKey(offsetDays);
@@ -151,6 +176,11 @@ export function buildReminderEmail({
   const isPartial = invoice.amount_received_minor > 0 && remainingMinor > 0;
   const dueFormatted = formatShortDate(invoice.due_date);
   const timingPhrase = getTimingPhrase(offsetDays, dueFormatted);
+  const cleanName = freelancerName?.trim() || "";
+  const senderLabel = cleanName || freelancerEmail;
+  const onBehalfOf = cleanName
+    ? `${cleanName} (${freelancerEmail})`
+    : freelancerEmail;
 
   let rawSubject: string;
   let opening: string;
@@ -203,35 +233,36 @@ export function buildReminderEmail({
     closing,
     "",
     "Thanks,",
-    freelancerEmail,
+    senderLabel,
     "",
     "---",
-    `Sent via PingCue on behalf of ${freelancerEmail}. Reply directly to this email if you've already paid.`,
+    `Sent via PingCue on behalf of ${onBehalfOf}. Reply directly to this email if you've already paid.`,
   ];
 
   const safeClient = escapeHtml(invoice.client_name);
   const safeOpening = escapeHtml(opening);
   const safeClosing = escapeHtml(closing);
-  const safeFreelancer = escapeHtml(freelancerEmail);
+  const safeSenderLabel = escapeHtml(senderLabel);
+  const safeOnBehalfOf = escapeHtml(onBehalfOf);
   const safeLink = invoice.payment_link
     ? escapeHtml(invoice.payment_link)
     : null;
 
   const html = `<!doctype html>
 <html lang="en">
-  <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#1e293b;line-height:1.6;">
-    <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:28px;">
+  <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#111111;line-height:1.6;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;padding:28px;">
       <p style="margin:0 0 16px;">Hi ${safeClient},</p>
       <p style="margin:0 0 16px;">${safeOpening}</p>
       ${
         safeLink
-          ? `<p style="margin:20px 0;"><a href="${safeLink}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;padding:10px 18px;border-radius:8px;">Pay ${escapeHtml(amountFormatted)}</a></p><p style="margin:0 0 16px;font-size:13px;color:#475569;">Direct link: <a href="${safeLink}" style="color:#2563eb;word-break:break-all;">${safeLink}</a></p>`
+          ? `<p style="margin:20px 0;"><a href="${safeLink}" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:9999px;">Pay ${escapeHtml(amountFormatted)}</a></p><p style="margin:0 0 16px;font-size:13px;color:#52525b;">Direct link: <a href="${safeLink}" style="color:#111111;word-break:break-all;">${safeLink}</a></p>`
           : ""
       }
       <p style="margin:0 0 16px;">${safeClosing}</p>
-      <p style="margin:0;">Thanks,<br />${safeFreelancer}</p>
-      <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0 12px;" />
-      <p style="margin:0;font-size:12px;color:#64748b;">Sent via PingCue on behalf of ${safeFreelancer}. Reply directly to this email if you've already paid.</p>
+      <p style="margin:0;">Thanks,<br />${safeSenderLabel}</p>
+      <hr style="border:none;border-top:1px solid #e4e4e7;margin:24px 0 12px;" />
+      <p style="margin:0;font-size:12px;color:#71717a;">Sent via PingCue on behalf of ${safeOnBehalfOf}. Reply directly to this email if you've already paid.</p>
     </div>
   </body>
 </html>`;
@@ -243,6 +274,117 @@ export function buildReminderEmail({
     text: textLines.join("\n"),
     html,
   };
+}
+
+export interface DigestReminderItem {
+  title: string;
+  clientName: string;
+  clientEmail: string;
+  amountFormatted: string;
+  offsetDays: number;
+  tone: ReminderTone;
+}
+
+/** Builds a concise daily digest email letting the freelancer know what PingCue sent. */
+export function buildFreelancerDigestEmail({
+  freelancerName,
+  dateIso,
+  items,
+}: {
+  freelancerName?: string | null;
+  freelancerEmail: string;
+  dateIso: string;
+  items: DigestReminderItem[];
+}): { subject: string; text: string; html: string } {
+  const count = items.length;
+  const greetingName = freelancerName?.trim() || "there";
+  const dateLabel = formatShortDate(dateIso);
+  const subject =
+    count === 1
+      ? `PingCue sent 1 reminder today (${items[0].clientName})`
+      : `PingCue sent ${count} reminders today (${dateLabel})`;
+
+  const textLines = [
+    `Hi ${greetingName},`,
+    "",
+    `PingCue sent ${count} scheduled payment ${count === 1 ? "reminder" : "reminders"} on ${dateLabel}:`,
+    "",
+    ...items.map(
+      (item) =>
+        `- ${item.title} (${item.amountFormatted}) to ${item.clientName} <${item.clientEmail}> — ${formatOffsetBadge(item.offsetDays)} (${item.tone})`
+    ),
+    "",
+    "You can pause or mark any invoice paid anytime in your PingCue dashboard.",
+  ];
+
+  const listHtml = items
+    .map(
+      (item) =>
+        `<li style="margin:0 0 8px;"><strong>${escapeHtml(item.title)}</strong> (${escapeHtml(item.amountFormatted)}) to ${escapeHtml(item.clientName)} &lt;${escapeHtml(item.clientEmail)}&gt; — ${escapeHtml(formatOffsetBadge(item.offsetDays))} (${escapeHtml(item.tone)})</li>`
+    )
+    .join("");
+
+  const html = `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#111111;line-height:1.6;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;padding:28px;">
+      <p style="margin:0 0 14px;">Hi ${escapeHtml(greetingName)},</p>
+      <p style="margin:0 0 14px;">PingCue sent ${count} scheduled payment ${count === 1 ? "reminder" : "reminders"} on ${escapeHtml(dateLabel)}:</p>
+      <ul style="margin:0 0 18px;padding-left:20px;">${listHtml}</ul>
+      <p style="margin:0;font-size:13px;color:#52525b;">You can pause or mark any invoice paid anytime in your PingCue dashboard.</p>
+    </div>
+  </body>
+</html>`;
+
+  return { subject, text: textLines.join("\n"), html };
+}
+
+/** Builds an ops alert email when the daily reminder cron hits errors. */
+export function buildCronAlertEmail({
+  dateIso,
+  summary,
+}: {
+  dateIso: string;
+  summary: {
+    checked: number;
+    due: number;
+    sent: number;
+    failed: number;
+    skippedCap: number;
+    errors?: string[];
+  };
+}): { subject: string; text: string; html: string } {
+  const subject = `[PingCue Cron Alert] ${summary.failed} failed on ${dateIso}`;
+  const errorsList = summary.errors ?? [];
+  const textLines = [
+    `PingCue daily cron reported failures on ${dateIso}:`,
+    "",
+    `Checked: ${summary.checked}`,
+    `Due: ${summary.due}`,
+    `Sent: ${summary.sent}`,
+    `Failed: ${summary.failed}`,
+    `Skipped cap: ${summary.skippedCap}`,
+    ...(errorsList.length > 0 ? ["", "Errors:", ...errorsList.map((e) => `- ${e}`)] : []),
+  ];
+
+  const errorsHtml = errorsList.length
+    ? `<ul style="margin:12px 0 0;padding-left:20px;color:#9f1239;">${errorsList
+        .map((e) => `<li>${escapeHtml(e)}</li>`)
+        .join("")}</ul>`
+    : "";
+
+  const html = `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#111111;line-height:1.6;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #fecdd3;border-radius:16px;padding:24px;">
+      <p style="margin:0 0 12px;font-weight:600;color:#9f1239;">PingCue daily cron reported failures on ${escapeHtml(dateIso)}</p>
+      <p style="margin:0;font-size:13px;">Checked: ${summary.checked} · Due: ${summary.due} · Sent: ${summary.sent} · Failed: ${summary.failed} · Skipped cap: ${summary.skippedCap}</p>
+      ${errorsHtml}
+    </div>
+  </body>
+</html>`;
+
+  return { subject, text: textLines.join("\n"), html };
 }
 
 /** Builds a zero-API wa.me WhatsApp nudge link and Free-plan truncated teaser. */

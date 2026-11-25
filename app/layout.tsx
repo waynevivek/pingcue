@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree, JetBrains_Mono } from "next/font/google";
+import { getMetadataBase, SITE_NAME } from "@/lib/site-config";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -14,10 +15,26 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
+const DEFAULT_TITLE = "PingCue — Polite Invoice Chasers for Freelancers";
+const DEFAULT_DESCRIPTION =
+  "Send payment links by email or WhatsApp? PingCue automatically sends escalating payment reminders so you get paid without an invoicing suite.";
+
 export const metadata: Metadata = {
-  title: "PingCue — Polite Invoice Chasers for Freelancers",
-  description:
-    "Send payment links by email or WhatsApp? PingCue automatically sends escalating payment reminders so you get paid without an invoicing suite.",
+  metadataBase: getMetadataBase(),
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
+  openGraph: {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    siteName: SITE_NAME,
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

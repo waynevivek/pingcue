@@ -22,39 +22,37 @@ PingCue is an automated invoice email chaser. A freelancer enters the client, am
 Built specifically for link-based solo freelancers rather than teams migrating into a full invoicing or accounting suite:
 
 - **No gateway lock-in:** Works with any `https://` payment link (UPI, Razorpay, Wise, PayPal, bank transfer).
-- **Direct client thread:** Sends emails with the freelancer's address in `Reply-To`, keeping client replies and receipts in the freelancer's own inbox.
-- **Control without awkwardness:** Includes 1-click Pause (`paused_until`), "Send test email to me" previewing, customizable reminder day offsets per invoice, and zero-API `https://wa.me/...` WhatsApp nudges.
+- **Direct client thread:** Sends emails signed with the freelancer's configured name/studio (`display_name`) and sets the freelancer's email as `Reply-To`, keeping client replies and receipts in the freelancer's own inbox.
+- **Control without awkwardness:** Includes 1-click Pause (`paused_until`), interactive multi-step in-app email previews, "Send test email to me", 2-step manual "Send reminder now", customizable reminder day offsets per invoice, reschedule-safe due-date edits, and zero-API `https://wa.me/...` WhatsApp nudges (with copy + history logging).
 - **Multi-currency clarity without FX guesswork:** Tracks `INR`, `USD`, `EUR`, and `GBP` separately, updating remaining balances as partial payments are recorded.
 
 ## Operating Context
 
-- **Device reality:** Mobile-first phone ergonomics for quick status checks, logging partial payments, pausing reminders when a client promises a date, or triggering a WhatsApp nudge; also used on desktop browsers.
-- **Workflow cadence:** Freelancers add an invoice (title, client name/email, optional WhatsApp number, currency, amount, due date, optional payment link, and editable offset schedule), verify tone via test email, and let Vercel's daily reminder cron (`/api/cron/reminders`) handle email dispatches.
+- **Device reality:** Mobile-first phone ergonomics (card lists on mobile, tables on desktop) for quick status checks, logging partial payments, pausing reminders when a client promises a date, or triggering a WhatsApp nudge; also used on desktop browsers.
+- **Workflow cadence:** Freelancers configure their sender name, default currency, and daily send digest preference in `/settings`, add an invoice, preview tone in-app or via test email, and let Vercel's daily reminder cron (`/api/cron/reminders`) handle paginated, bounce-protected email dispatches.
 
 ## Capabilities and Constraints
 
-- **Application stack:** Next.js 16 (App Router, TypeScript), Tailwind CSS 4, Supabase (Postgres + Auth), Resend (transactional email with freelancer `Reply-To`), Dodo Payments (Merchant of Record, `/api/checkout` + signature-verified webhook `/api/webhooks/dodo`), and Vercel hosting + daily cron.
-- **UI component commitment:** Target component layer is `shadcn/ui` on Tailwind CSS (confirmed for upcoming builds; not yet installed in `package.json`, and existing UI in `app/` is a temporary draft).
+- **Application stack:** Next.js 16 (App Router, Cache Components + Partial Prefetching, TypeScript), Tailwind CSS 4, `shadcn/ui` primitives (`components/ui/*`), Supabase (Postgres + Auth with PKCE callback and password reset), Resend (transactional email + delivery/bounce suppression webhook `/api/webhooks/resend`), Dodo Payments (Merchant of Record, `/api/checkout` + signature-verified, idempotent unlock/refund/dispute webhook `/api/webhooks/dodo`), and Vercel hosting + daily cron.
 - **Pricing tiers:**
-  - **Free plan (`$0`):** 1 active invoice at a time, full escalating email schedule (`-3d` to `+30d`), custom schedule, 1-click Pause, test email sends, and per-currency dashboard totals.
-  - **Founding Pass (`$19` one-time):** Unlimited active invoices, zero-API 1-click WhatsApp nudges, 12 months of upcoming V1.5 Document Chaser, and a 7-day no-questions-asked refund guarantee.
+  - **Free plan (`$0`):** 1 active invoice at a time (enforced atomically at the Postgres boundary), full escalating email schedule (`-3d` to `+30d`), custom schedule, 1-click Pause, inline & test email previews, and per-currency dashboard totals.
+  - **Founding Pass (`$19` one-time):** Unlimited active invoices, zero-API 1-click WhatsApp nudges (with Copy & history logging), 12 months of upcoming V1.5 Document Chaser, and a 7-day no-questions-asked refund guarantee.
 - **Explicit V1 boundaries:** No currency FX conversion, no WhatsApp Business API automation, no invoice PDF generation, no accounting/tax/GST exports, no full client CRM, no hourly per-timezone cron, and no `$49` Year-end Pass tier yet.
 - **Explicitly undecided facts:** Ship date for V1.5 Document Chaser; whether currencies beyond `INR`, `USD`, `EUR`, and `GBP` will be added later.
 
 ## Brand Commitments
 
-- **Name and support contact:** `PingCue` (`pingcue.support@gmail.com`).
-- **Tone and voice:** Calm, trustworthy, polite but firm, finance-adjacent without corporate stiffness.
+- **Name and support contact:** `PingCue` (centralized via `lib/site-config.ts` / `NEXT_PUBLIC_SUPPORT_EMAIL`, defaulting to `pingcue.support@gmail.com` until custom domain routing is attached).
+- **Tone and voice:** Approachable, crisp, trustworthy, polite but firm—never corporate or spammy.
 - **Binding visual and copy guardrails:**
   - No stock photos.
   - No purple gradients.
-  - No emoji in UI labels.
-- **Incumbent UI status:** Existing styles and components in `app/globals.css`, `app/layout.tsx`, `app/page.tsx`, and `app/(app)/*` are a temporary draft to be replaced by the visual direction seeded in `DESIGN.md`.
+  - No emoji in UI labels (custom vector die-cut stickers and Lucide icons only).
 
 ## Evidence on Hand
 
-- **Implemented V1 foundation:** Working routes (`/`, `/login`, `/dashboard`, `/invoices`, `/terms`, `/privacy`, `/refund`) and unit-tested domain logic (`lib/invoices.test.ts`, `lib/reminders.test.ts`, `lib/dodo.test.ts`).
-- **Synthetic demo material:** The landing page's invoice preview (`Northstar Design Retainer` / `Priya`) is synthetic demonstration data.
+- **Implemented V1 foundation:** Complete production routes (`/`, `/login`, `/auth/callback`, `/auth/reset-password`, `/dashboard`, `/invoices`, `/invoices/new`, `/invoices/[id]`, `/settings`, `/terms`, `/privacy`, `/refund`), hardened API endpoints (`/api/checkout`, `/api/cron/reminders`, `/api/events`, `/api/webhooks/dodo`, `/api/webhooks/resend`), and automated unit tests (`npm test`).
+- **Synthetic demo material:** The landing page's interactive invoice preview (`Northstar Design Retainer` / `Priya`) is clearly labeled synthetic demonstration data.
 - **Confirmed absences (must not be fabricated):** No real customer testimonials, user counts, collection-rate benchmarks, case studies, or press logos exist yet.
 
 ## Product Principles

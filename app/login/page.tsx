@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
 import {
@@ -8,8 +9,9 @@ import {
   SparkleSticker,
   StarBuddySticker,
 } from "@/app/components/HeroStickers";
+import { getAuthCallbackErrorMessage } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/db";
-import { AuthForm } from "./AuthForm";
+import { AuthForm, type AuthMode } from "./AuthForm";
 
 export const metadata: Metadata = {
   title: "Sign in — PingCue",
@@ -17,7 +19,41 @@ export const metadata: Metadata = {
     "Sign in or create your PingCue account to manage invoice reminders.",
 };
 
-export default function LoginPage() {
+function readParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string
+): string | undefined {
+  const raw = params[key];
+  return Array.isArray(raw) ? raw[0] : raw;
+}
+
+async function LoginFormSection({
+  configured,
+  searchParams,
+}: {
+  configured: boolean;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedParams = await searchParams;
+  const upgrade = readParam(resolvedParams, "upgrade") === "1";
+  const rawMode = readParam(resolvedParams, "mode");
+  const initialMode: AuthMode =
+    rawMode === "signup" || rawMode === "forgot" ? rawMode : "signin";
+  const callbackError = getAuthCallbackErrorMessage(
+    readParam(resolvedParams, "error")
+  );
+
+  return (
+    <AuthForm
+      disabled={!configured}
+      upgrade={upgrade}
+      initialMode={initialMode}
+      callbackError={callbackError}
+    />
+  );
+}
+
+export default function LoginPage(props: PageProps<"/login">) {
   const configured = isSupabaseConfigured();
 
   return (
@@ -153,7 +189,21 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <AuthForm disabled={!configured} />
+                <Suspense
+                  fallback={
+                    <div className="space-y-4">
+                      <div className="h-10 w-full animate-pulse rounded-full bg-[#F4F4F5]" />
+                      <div className="h-11 w-full animate-pulse rounded-xl bg-[#F4F4F5]" />
+                      <div className="h-11 w-full animate-pulse rounded-xl bg-[#F4F4F5]" />
+                      <div className="h-12 w-full animate-pulse rounded-full bg-[#F4F4F5]" />
+                    </div>
+                  }
+                >
+                  <LoginFormSection
+                    configured={configured}
+                    searchParams={props.searchParams}
+                  />
+                </Suspense>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/login/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getUserProfile, requireUser } from "@/lib/db";
+import { AppNav } from "./AppNav";
 
 async function UserNavStatus() {
   const { user } = await requireUser();
@@ -49,20 +50,23 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               aria-label="App navigation"
               className="flex items-center gap-2 sm:gap-3 text-sm font-medium"
             >
-              <div className="flex items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/85 p-1 text-[13px] font-medium text-[#52525B]">
-                <Link
-                  href="/dashboard"
-                  className="rounded-full px-3 py-1 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/invoices"
-                  className="rounded-full px-3 py-1 transition-all duration-150 hover:bg-white hover:text-[#111111] hover:shadow-[0_1px_2px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-                >
-                  Invoices
-                </Link>
-              </div>
+              <Suspense
+                fallback={
+                  <div className="flex items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/85 p-1 text-[13px] font-medium text-[#52525B]">
+                    <Link href="/dashboard" className="rounded-full px-3 py-1">
+                      Dashboard
+                    </Link>
+                    <Link href="/invoices" className="rounded-full px-3 py-1">
+                      Invoices
+                    </Link>
+                    <Link href="/settings" className="rounded-full px-3 py-1">
+                      Settings
+                    </Link>
+                  </div>
+                }
+              >
+                <AppNav />
+              </Suspense>
               <Button asChild size="sm" className="hidden sm:inline-flex">
                 <Link href="/invoices/new">
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />

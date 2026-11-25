@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { SUPPORT_EMAIL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy — PingCue",
@@ -58,10 +59,10 @@ export default function RefundPage() {
                 <p className="mt-1.5">
                   If PingCue isn&apos;t a fit for your freelance workflow, email{" "}
                   <a
-                    href="mailto:pingcue.support@gmail.com"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     className="font-semibold text-[#111111] underline hover:text-[#52525B]"
                   >
-                    pingcue.support@gmail.com
+                    {SUPPORT_EMAIL}
                   </a>{" "}
                   within 7 calendar days of purchase with your order email or
                   Dodo Payments receipt ID. We will issue a full refund back to
