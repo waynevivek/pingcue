@@ -117,8 +117,9 @@ export async function POST(request: Request) {
     }
   }
 
+  const emailDomain = cleanEmail ? cleanEmail.split("@")[1] ?? null : null;
+
   if (supabase) {
-    const emailDomain = cleanEmail ? cleanEmail.split("@")[1] ?? null : null;
     const { error: analyticsError } = await supabase
       .from("analytics_events")
       .insert({
@@ -140,7 +141,7 @@ export async function POST(request: Request) {
       tag: "PINGCUE_EVENT",
       event,
       source: cleanSource,
-      ...(cleanEmail ? { email: cleanEmail } : {}),
+      ...(emailDomain ? { emailDomain } : {}),
       timestamp: new Date().toISOString(),
       userAgent: request.headers.get("user-agent")?.slice(0, 160) ?? null,
     })

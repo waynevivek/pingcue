@@ -9,6 +9,7 @@ import {
 } from "./resend-webhook.ts";
 import {
   createMemoryRateLimiter,
+  getManualSendDailyLimit,
   isAllowedSameOrigin,
   isTimingSafeBearerMatch,
 } from "./security.ts";
@@ -144,4 +145,10 @@ test("isTimingSafeBearerMatch validates exact Bearer tokens in constant time", (
   assert.equal(isTimingSafeBearerMatch("super-secret-key", "super-secret-key"), false);
   assert.equal(isTimingSafeBearerMatch(null, "super-secret-key"), false);
   assert.equal(isTimingSafeBearerMatch("Bearer ", ""), false);
+});
+
+test("getManualSendDailyLimit scales daily cap by user plan", () => {
+  assert.equal(getManualSendDailyLimit("free"), 10);
+  assert.equal(getManualSendDailyLimit("founding_pass"), 30);
+  assert.equal(getManualSendDailyLimit("unknown"), 10);
 });

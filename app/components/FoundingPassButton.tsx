@@ -153,12 +153,15 @@ export function FoundingPassButton({
           {status === "done" ? (
             <div className="mt-4 rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] p-4 text-[#14532D]">
               <p className="text-sm font-semibold">
-                You&apos;re on the Founding Pass list.
+                {checkoutLive
+                  ? "You're on the updates list."
+                  : "You're on the Founding Pass list."}
               </p>
               <p className="mt-1 text-sm text-[#14532D]/90">
-                We recorded <span className="font-mono">{email.trim()}</span>. As
-                soon as Dodo Payments checkout switches to live mode, we&apos;ll
-                send your $19 one-time link first.
+                We recorded <span className="font-mono">{email.trim()}</span>.{" "}
+                {checkoutLive
+                  ? "We'll share major PingCue updates and let you know when V1.5 Document Chaser lands."
+                  : "As soon as Dodo Payments checkout switches to live mode, we'll send your $19 one-time link first."}
               </p>
               <Button
                 type="button"
@@ -177,11 +180,15 @@ export function FoundingPassButton({
                     label="Continue to $19 Checkout"
                     className="w-full"
                   />
+                  <p className="mt-2 text-center text-xs text-[#52525B]">
+                    7-day no-questions-asked refund · Secure checkout via Dodo
+                    Payments
+                  </p>
 
                   <div className="relative my-4 flex items-center">
                     <div className="grow border-t border-black/[0.08]" />
                     <span className="mx-3 shrink-0 text-xs text-[#52525B]">
-                      or save your email for launch updates
+                      or get product &amp; V1.5 updates
                     </span>
                     <div className="grow border-t border-black/[0.08]" />
                   </div>
@@ -208,7 +215,7 @@ export function FoundingPassButton({
                     type="email"
                     required
                     autoComplete="email"
-                    autoFocus
+                    autoFocus={!checkoutLive}
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -233,17 +240,22 @@ export function FoundingPassButton({
 
                 <Button
                   type="submit"
+                  variant={checkoutLive ? "outline" : "default"}
                   size="lg"
                   disabled={status === "submitting"}
                   className="w-full"
                 >
                   {status === "submitting"
                     ? "Saving..."
-                    : "Lock in $19 Founding Pass"}
+                    : checkoutLive
+                      ? "Send me product updates"
+                      : "Lock in $19 Founding Pass"}
                 </Button>
 
                 <p className="text-center text-xs text-[#52525B]">
-                  No spam. One email when checkout opens. No subscription ever.
+                  {checkoutLive
+                    ? "No spam. Occasional launch & V1.5 Document Chaser updates only."
+                    : "No spam. One email when checkout opens. No subscription ever."}
                 </p>
               </form>
             </div>

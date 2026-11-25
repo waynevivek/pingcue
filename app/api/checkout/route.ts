@@ -5,6 +5,7 @@ import {
   isSupabaseConfigured,
 } from "@/lib/db";
 import { createFoundingPassCheckout, isDodoLiveMode } from "@/lib/dodo";
+import { isAllowedSameOrigin } from "@/lib/security";
 import { resolveAppOrigin } from "@/lib/site-config";
 
 export async function POST(request: Request) {
@@ -35,6 +36,19 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
+  }
+
+  if (
+    !isAllowedSameOrigin(
+      request.headers.get("origin"),
+      request.url,
+      origin,
+      process.env.NODE_ENV,
+      request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
+      request.headers.get("x-forwarded-proto")
+    )
+  ) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const supabase = await createSupabaseServerClient();

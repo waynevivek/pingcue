@@ -108,3 +108,8 @@ export function createMemoryRateLimiter({
     },
   };
 }
+
+/** Daily client-email cap for manual "Send now" actions, scaled by plan tier. */
+export function getManualSendDailyLimit(plan: string): number {
+  return plan === "founding_pass" ? 30 : 10;
+}

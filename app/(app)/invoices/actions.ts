@@ -27,16 +27,11 @@ import {
   getNextReminderOffset,
   getSentOffsetsForDueDate,
 } from "@/lib/reminders";
-import { createMemoryRateLimiter } from "@/lib/security";
+import { getManualSendDailyLimit } from "@/lib/security";
 import { getSupabaseAdminEnv } from "@/lib/supabase-env";
 
 const TEST_EMAIL_HOURLY_LIMIT = 5;
 const TEST_EMAIL_DAILY_LIMIT = 10;
-
-const manualSendRateLimiter = createMemoryRateLimiter({
-  maxRequests: 10,
-  windowMs: 24 * 60 * 60 * 1000,
-});
 
 function revalidateInvoicePaths(invoiceId?: string) {
   revalidatePath("/dashboard");
@@ -475,15 +470,29 @@ export async function sendReminderNowAction(
     };
   }
 
-  if (!manualSendRateLimiter.check(user.id)) {
+  const scheduledFor = addDaysIso(invoice.due_date, offsetDays);
+  const admin = createSupabaseAdminClient();
+
+  const dailyLimit = getManualSendDailyLimit(profile.plan);
+  const dayAgoIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: recentClientSends, error: rateLimitError } = await admin
+    .from("reminder_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("channel", "email")
+    .gte("sent_at", dayAgoIso);
+
+  if (rateLimitError) {
     return {
-      error:
-        "Manual client reminder limit reached (10 per 24 hours). Scheduled cron reminders continue normally.",
+      error: "Could not verify client reminder quota. Please try again.",
     };
   }
 
-  const scheduledFor = addDaysIso(invoice.due_date, offsetDays);
-  const admin = createSupabaseAdminClient();
+  if ((recentClientSends ?? 0) >= dailyLimit) {
+    return {
+      error: `Daily client reminder limit reached (${dailyLimit} per 24 hours). Scheduled cron reminders continue normally.`,
+    };
+  }
 
   const { data: claimed, error: claimError } = await admin
     .from("reminder_logs")

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import {
   getInvoiceById,
   getUserProfile,
+  isEmailSuppressed,
   listReminderLogs,
   requireUser,
 } from "@/lib/db";
@@ -112,6 +113,9 @@ async function InvoiceDetailContent({
     invoice.amount_received_minor
   );
   const active = isInvoiceActive(invoice);
+  const clientEmailSuppressed = active
+    ? await isEmailSuppressed(invoice.client_email)
+    : false;
   const paused = isInvoicePaused(invoice, todayIso);
   const sentEmailOffsets = getSentOffsetsForDueDate(logs, invoice.due_date);
   const nextOffset = getNextReminderOffset(invoice, sentEmailOffsets, todayIso);
@@ -160,6 +164,23 @@ async function InvoiceDetailContent({
           className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-5 py-3.5 text-sm font-medium text-[#9F1239]"
         >
           {rawActionError}
+        </div>
+      )}
+
+      {clientEmailSuppressed && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-5 py-4 text-sm text-[#9F1239]"
+        >
+          <p className="font-semibold">
+            Automated emails are paused for {invoice.client_email}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed">
+            An earlier email to this address bounced or was marked as spam, so
+            PingCue won&apos;t send further email reminders to protect
+            deliverability. Fix any typo in the client email below, or follow up
+            on WhatsApp instead.
+          </p>
         </div>
       )}
 
@@ -336,7 +357,7 @@ async function InvoiceDetailContent({
               replyTo={replyToEmail}
             />
             <SendTestEmailButton invoiceId={invoice.id} />
-            {active && !sentEmailOffsets.has(nextOffset) && (
+            {active && !clientEmailSuppressed && !sentEmailOffsets.has(nextOffset) && (
               <SendNowButton
                 invoiceId={invoice.id}
                 clientEmail={invoice.client_email}
