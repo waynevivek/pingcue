@@ -12,7 +12,10 @@ import {
   Pause,
   Wallet,
 } from "lucide-react";
-import { PerchedPingMascot } from "@/app/components/HeroStickers";
+import {
+  PaidStampSticker,
+  PaperPlaneSticker,
+} from "@/app/components/HeroStickers";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -44,6 +47,7 @@ import {
   getSentOffsetsForDueDate,
   type ReminderLog,
 } from "@/lib/reminders";
+import { DaylightStage } from "../../DaylightStage";
 import { pauseInvoiceAction, recordPaymentAction } from "../actions";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { DeleteInvoiceButton } from "../DeleteInvoiceButton";
@@ -182,7 +186,7 @@ async function InvoiceDetailContent({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
           href="/invoices"
-          className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+          className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Invoices</span>
@@ -193,7 +197,7 @@ async function InvoiceDetailContent({
             href={invoice.payment_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
           >
             <span>Payment link</span>
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -236,116 +240,127 @@ async function InvoiceDetailContent({
         </div>
       )}
 
-      {/* Signature Tactile Balance Hero Card (Butter when active, Mint when settled) */}
-      <div className="relative pt-8">
-        <PerchedPingMascot
-          sleeping={paused || !active}
-          className="absolute -top-0.5 left-5 z-10 h-[48px] w-[76px] sm:left-6"
-        />
-
+      {/* Sky-and-Meadow Framed Balance Hero Card */}
+      <DaylightStage mascot sleeping={paused || !active}>
         <div
-          className={`rounded-[26px] border border-black/[0.08] p-5 pt-7 shadow-[0_12px_36px_-22px_rgba(15,23,42,0.18)] sm:p-6 sm:pt-7 ${
-            active ? "bg-[#FFF1A8]" : "bg-[#DCFCE7]"
+          className={`relative rounded-[22px] border-2 border-white/90 p-4 pt-5 shadow-[0_20px_50px_-16px_rgba(15,23,42,0.2)] sm:p-5 sm:pt-6 ${
+            active ? "bg-[#FFF1A8]" : "bg-[#D6F7A3]"
           }`}
         >
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0 space-y-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[28px]">
-                  {invoice.title}
-                </h1>
-                <InvoiceStatusBadges invoice={invoice} todayIso={todayIso} />
-              </div>
-
-              <div
-                className={`space-y-1.5 text-xs font-medium ${
-                  active ? "text-[#4B4116]" : "text-[#14532D]"
-                }`}
-              >
-                <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="font-semibold text-[#111111]">
-                    {invoice.client_name}
-                  </span>
-                  <span className="break-words">{invoice.client_email}</span>
-                </p>
-
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0 space-y-2.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/65 px-2.5 py-0.5 font-medium text-[#111111] tabular-nums">
-                    <Calendar className="h-3 w-3 text-[#52525B]" aria-hidden="true" />
-                    <span>Due {formatShortDate(invoice.due_date)}</span>
-                  </span>
-                  {invoice.client_whatsapp && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/65 px-2.5 py-0.5 font-mono text-[11px] font-medium text-[#111111]">
-                      <MessageSquare className="h-3 w-3 text-[#15803D]" aria-hidden="true" />
-                      <span>{invoice.client_whatsapp}</span>
+                  <h1 className="font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[26px]">
+                    {invoice.title}
+                  </h1>
+                  <InvoiceStatusBadges invoice={invoice} todayIso={todayIso} />
+                </div>
+
+                <div
+                  className={`space-y-1.5 text-xs font-medium ${
+                    active ? "text-[#4B4116]" : "text-[#1A2E05]"
+                  }`}
+                >
+                  <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <span className="font-semibold text-[#111111]">
+                      {invoice.client_name}
                     </span>
-                  )}
+                    <span className="break-words">{invoice.client_email}</span>
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-2.5 py-0.5 font-medium text-[#111111] tabular-nums shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                      <Calendar
+                        className="h-3 w-3 text-[#52525B]"
+                        aria-hidden="true"
+                      />
+                      <span>Due {formatShortDate(invoice.due_date)}</span>
+                    </span>
+                    {invoice.client_whatsapp && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-2.5 py-0.5 font-mono text-[11px] font-medium text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                        <MessageSquare
+                          className="h-3 w-3 text-[#15803D]"
+                          aria-hidden="true"
+                        />
+                        <span>{invoice.client_whatsapp}</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="shrink-0 md:text-right">
-              <p
-                className={`text-xs font-medium ${
-                  active ? "text-[#4B4116]" : "text-[#14532D]"
-                }`}
-              >
-                {active ? "Remaining balance" : "Settled in full"}
-              </p>
-              <p className="mt-1 font-mono text-[28px] font-bold leading-none tracking-[-0.03em] text-[#111111] tabular-nums sm:text-[32px]">
-                {formatMoney(
-                  active ? remainingMinor : invoice.amount_minor,
-                  invoice.currency
+              <div className="flex shrink-0 items-center justify-between gap-3 md:flex-col md:items-end md:text-right">
+                <div>
+                  <p
+                    className={`text-xs font-medium ${
+                      active ? "text-[#4B4116]" : "text-[#1A2E05]"
+                    }`}
+                  >
+                    {active ? "Remaining balance" : "Settled in full"}
+                  </p>
+                  <p className="mt-1 font-mono text-[28px] font-bold leading-none tracking-[-0.03em] text-[#111111] tabular-nums sm:text-[32px]">
+                    {formatMoney(
+                      active ? remainingMinor : invoice.amount_minor,
+                      invoice.currency
+                    )}
+                  </p>
+                  <p
+                    className={`mt-1 font-mono text-xs tabular-nums ${
+                      active ? "text-[#4B4116]" : "text-[#1A2E05]"
+                    }`}
+                  >
+                    {formatMoney(
+                      invoice.amount_received_minor,
+                      invoice.currency
+                    )}{" "}
+                    of {formatMoney(invoice.amount_minor, invoice.currency)}{" "}
+                    received
+                  </p>
+                </div>
+
+                {!active && (
+                  <PaidStampSticker className="h-12 w-14 rotate-[8deg] shrink-0" />
                 )}
-              </p>
-              <p
-                className={`mt-1 font-mono text-xs tabular-nums ${
-                  active ? "text-[#4B4116]" : "text-[#14532D]"
+              </div>
+            </div>
+
+            {/* Settlement Progress Track */}
+            <div className="mt-5 space-y-1.5">
+              <div
+                aria-hidden="true"
+                className="h-2.5 w-full overflow-hidden rounded-full bg-white/85 p-0.5"
+              >
+                <div
+                  style={{ width: `${paidPct}%` }}
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    active ? "bg-[#111111]" : "bg-[#16A34A]"
+                  }`}
+                />
+              </div>
+              <div
+                className={`flex flex-wrap items-center justify-between gap-2 text-xs font-semibold tabular-nums ${
+                  active ? "text-[#4B4116]" : "text-[#1A2E05]"
                 }`}
               >
-                {formatMoney(invoice.amount_received_minor, invoice.currency)}{" "}
-                of {formatMoney(invoice.amount_minor, invoice.currency)} received
-              </p>
+                <span>{paidPct}% paid</span>
+                <span>
+                  {active
+                    ? paused && invoice.paused_until
+                      ? `Quiet until ${formatShortDate(invoice.paused_until)}`
+                      : `Next step: ${formatOffsetBadge(nextOffset)} (${getOffsetTone(nextOffset)})`
+                    : "All automated reminders stopped"}
+                </span>
+              </div>
             </div>
-          </div>
-
-          {/* Settlement Progress Track */}
-          <div className="mt-5 space-y-1.5">
-            <div
-              aria-hidden="true"
-              className="h-2.5 w-full overflow-hidden rounded-full bg-white/80 p-0.5"
-            >
-              <div
-                style={{ width: `${paidPct}%` }}
-                className={`h-full rounded-full transition-all duration-300 ${
-                  active ? "bg-[#111111]" : "bg-[#16A34A]"
-                }`}
-              />
-            </div>
-            <div
-              className={`flex flex-wrap items-center justify-between gap-2 text-xs font-medium tabular-nums ${
-                active ? "text-[#4B4116]" : "text-[#14532D]"
-              }`}
-            >
-              <span>{paidPct}% paid</span>
-              <span>
-                {active
-                  ? paused && invoice.paused_until
-                    ? `Quiet until ${formatShortDate(invoice.paused_until)}`
-                    : `Next cadence step: ${formatOffsetBadge(nextOffset)} (${getOffsetTone(nextOffset)})`
-                  : "All automated reminders stopped"}
-              </span>
-            </div>
-          </div>
         </div>
-      </div>
+      </DaylightStage>
 
-      {/* Quick Controls: Payment & Pause */}
+      {/* Quick Controls: Payment (White Crisp Card) & Pause (Soft Coral Bento matching Landing Bento 2) */}
       <div className="grid gap-4 md:grid-cols-2 md:gap-5">
         {/* Payment Progress */}
         <Card className="p-5 sm:p-6">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#111111]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-black/[0.08] bg-[#FFF1A8] text-[#111111]">
               <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             <h2 className="text-base font-semibold text-[#111111]">
@@ -377,7 +392,7 @@ async function InvoiceDetailContent({
             <SubmitButton
               variant="outline"
               pendingLabel="Saving..."
-              className="w-full sm:w-auto"
+              className="w-full shadow-[0_2px_0_rgba(17,17,17,0.08)] active:translate-y-[1px] active:shadow-none sm:w-auto"
             >
               Save payment
             </SubmitButton>
@@ -392,7 +407,7 @@ async function InvoiceDetailContent({
               <SubmitButton
                 variant="success"
                 pendingLabel="Marking paid..."
-                className="w-full"
+                className="w-full shadow-[0_3px_0_rgba(17,17,17,0.16)] active:translate-y-[1px] active:shadow-none"
               >
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 <span>
@@ -404,17 +419,17 @@ async function InvoiceDetailContent({
           )}
         </Card>
 
-        {/* Pause Reminders */}
-        <Card className="p-5 sm:p-6">
+        {/* Soft Coral Pause Reminders Bento (matching Landing Bento 2) */}
+        <div className="rounded-[24px] border border-black/[0.06] bg-[#FFD7DC] p-5 sm:p-6">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#111111]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-black/10 bg-white text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.08)]">
               <Pause className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             <h2 className="text-base font-semibold text-[#111111]">
               Pause reminders
             </h2>
           </div>
-          <p className="mt-1.5 text-xs leading-relaxed text-[#52525B]">
+          <p className="mt-1.5 text-xs leading-relaxed text-[#5C232B]">
             {paused && invoice.paused_until
               ? `Reminders are paused through ${formatShortDate(invoice.paused_until)}.`
               : "Client promised to pay later? Pause automated sends until that date."}
@@ -423,7 +438,11 @@ async function InvoiceDetailContent({
           <div className="mt-4 flex flex-wrap gap-2">
             <form action={pauseInvoiceAction.bind(null, invoice.id)}>
               <input type="hidden" name="mode" value="plus7" />
-              <SubmitButton size="sm" pendingLabel="Pausing...">
+              <SubmitButton
+                size="sm"
+                pendingLabel="Pausing..."
+                className="shadow-[0_3px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none"
+              >
                 Pause 7 days
               </SubmitButton>
             </form>
@@ -435,6 +454,7 @@ async function InvoiceDetailContent({
                   variant="outline"
                   size="sm"
                   pendingLabel="Resuming..."
+                  className="bg-white shadow-[0_3px_0_rgba(17,17,17,0.1)] active:translate-y-[1px] active:shadow-none"
                 >
                   Resume reminders
                 </SubmitButton>
@@ -448,7 +468,10 @@ async function InvoiceDetailContent({
           >
             <input type="hidden" name="mode" value="date" />
             <div className="min-w-0 flex-1">
-              <Label htmlFor="quick-paused-until" className="text-xs">
+              <Label
+                htmlFor="quick-paused-until"
+                className="text-xs text-[#5C232B]"
+              >
                 Or pause until date
               </Label>
               <Input
@@ -457,25 +480,25 @@ async function InvoiceDetailContent({
                 type="date"
                 required
                 defaultValue={invoice.paused_until ?? addDaysIso(todayIso, 7)}
-                className="mt-1.5 h-10 font-mono"
+                className="mt-1.5 h-10 border-black/10 bg-white font-mono"
               />
             </div>
             <SubmitButton
               variant="outline"
               pendingLabel="Updating..."
-              className="w-full sm:w-auto"
+              className="w-full bg-white shadow-[0_3px_0_rgba(17,17,17,0.1)] active:translate-y-[1px] active:shadow-none sm:w-auto"
             >
               Set pause date
             </SubmitButton>
           </form>
-        </Card>
+        </div>
       </div>
 
       {/* Unified Cadence Timeline + Live Email Preview + Test/Send Now */}
       <Card className="p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#F4F4F5] text-[#111111]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-black/[0.08] bg-[#D9E6FF] text-[#111111]">
               <Mail className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             <h2 className="text-base font-semibold text-[#111111]">
@@ -521,32 +544,35 @@ async function InvoiceDetailContent({
         </div>
       </Card>
 
-      {/* WhatsApp Nudge + Reminder History */}
+      {/* Mint-Lime WhatsApp Nudge Bento + Periwinkle Reminder History Tray */}
       <div className="grid gap-4 md:grid-cols-2 md:gap-5">
-        {/* Zero-API WhatsApp Nudge */}
-        <Card className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* Mint-Lime Zero-API WhatsApp Nudge (matching Landing Bento 3) */}
+        <div className="rounded-[24px] border border-black/[0.06] bg-[#D6F7A3] p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#DCFCE7] text-[#14532D]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-black/10 bg-white text-[#14532D] shadow-[0_2px_0_rgba(17,17,17,0.08)]">
                 <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
-              <h2 className="text-base font-semibold text-[#111111]">
-                Send on WhatsApp
-              </h2>
+              <div>
+                <h2 className="text-base font-semibold text-[#111111]">
+                  Send on WhatsApp
+                </h2>
+                <span className="text-[11px] font-semibold text-[#28420C]">
+                  {isFoundingPass ? "Zero-API wa.me" : "Founding Pass"}
+                </span>
+              </div>
             </div>
-            <Badge variant={isFoundingPass ? "paid" : "firm"}>
-              {isFoundingPass ? "Zero-API wa.me" : "Founding Pass"}
-            </Badge>
+            <PaperPlaneSticker className="h-10 w-12 shrink-0 rotate-[6deg]" />
           </div>
 
           {isFoundingPass ? (
             <>
-              <p className="mt-2 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-2.5 text-xs leading-relaxed text-[#28420C]">
                 Opens WhatsApp with a prefilled{" "}
                 {getOffsetTone(nextOffset).toLowerCase()} nudge and remaining
                 balance—no WhatsApp API needed.
               </p>
-              <div className="mt-3 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] p-3.5 text-xs leading-relaxed text-[#14532D]">
+              <div className="mt-3 rounded-2xl border border-black/[0.08] bg-white p-3.5 text-xs leading-relaxed text-[#111111] shadow-[0_4px_14px_-6px_rgba(17,24,39,0.12)]">
                 {whatsapp.message}
               </div>
               <WhatsappNudgeActions
@@ -559,11 +585,11 @@ async function InvoiceDetailContent({
             </>
           ) : (
             <>
-              <p className="mt-2 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-2.5 text-xs leading-relaxed text-[#28420C]">
                 Your polite WhatsApp message for {invoice.client_name} is ready
                 to send in 1 tap—unlock with the one-time Founding Pass.
               </p>
-              <div className="relative mt-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-[#FAFAFA] p-3.5 text-xs leading-relaxed text-[#111111]">
+              <div className="relative mt-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-3.5 text-xs leading-relaxed text-[#111111] shadow-[0_4px_14px_-6px_rgba(17,24,39,0.12)]">
                 <span>{whatsapp.teaserLine} </span>
                 {whatsapp.blurredRemainder && (
                   <span
@@ -582,16 +608,16 @@ async function InvoiceDetailContent({
               </div>
             </>
           )}
-        </Card>
+        </div>
 
-        {/* Reminder Activity Log */}
-        <Card className="p-5 sm:p-6">
+        {/* Periwinkle Reminder Activity Tray */}
+        <div className="rounded-[24px] border border-black/[0.06] bg-[#D9E6FF] p-5 sm:p-6">
           <h2 className="text-base font-semibold text-[#111111]">
             Reminder history ({logs.length})
           </h2>
 
           {logs.length === 0 ? (
-            <div className="mt-3 rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-4 text-xs leading-relaxed text-[#52525B]">
+            <div className="mt-3 rounded-2xl border border-black/[0.08] bg-white p-4 text-xs leading-relaxed text-[#52525B] shadow-[0_2px_0_rgba(17,17,17,0.06)]">
               No reminders sent for this invoice yet. Use{" "}
               <strong className="font-semibold text-[#111111]">
                 Send test email to me
@@ -599,7 +625,7 @@ async function InvoiceDetailContent({
               above to preview it in your own inbox first.
             </div>
           ) : (
-            <ul className="mt-3 divide-y divide-black/[0.06] text-xs">
+            <ul className="mt-3 space-y-2 text-xs">
               {logs.map((log) => {
                 const delivery =
                   log.channel === "email"
@@ -615,7 +641,7 @@ async function InvoiceDetailContent({
                 return (
                   <li
                     key={log.id}
-                    className="flex flex-col gap-1.5 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-1.5 rounded-2xl border border-black/[0.08] bg-white px-3.5 py-3 shadow-[0_2px_0_rgba(17,17,17,0.06)] sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                       <Badge variant="neutral">
@@ -641,7 +667,7 @@ async function InvoiceDetailContent({
               })}
             </ul>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Collapsible Edit Invoice Drawer */}
@@ -653,12 +679,12 @@ async function InvoiceDetailContent({
       </CollapsibleSection>
 
       {/* Danger Zone */}
-      <Card className="flex flex-col gap-3 border-[#FECDD3] p-5 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="flex flex-col gap-3 border-[#FECDD3] bg-[#FFF5F6] p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-[#111111]">
             Delete invoice
           </h2>
-          <p className="mt-0.5 text-xs text-[#52525B]">
+          <p className="mt-0.5 text-xs text-[#9F1239]">
             Permanently removes this invoice and its reminder logs.
           </p>
         </div>
@@ -673,11 +699,11 @@ export default function InvoiceDetailPage(props: PageProps<"/invoices/[id]">) {
     <Suspense
       fallback={
         <div className="space-y-5">
-          <div className="h-8 w-28 animate-pulse rounded-full bg-black/[0.06]" />
-          <div className="h-44 animate-pulse rounded-[26px] border border-black/[0.06] bg-white" />
+          <div className="h-8 w-28 animate-pulse rounded-full bg-[#F4F4F5]" />
+          <div className="h-52 animate-pulse rounded-[28px] bg-[#E0F2FE]" />
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-44 animate-pulse rounded-[24px] border border-black/[0.06] bg-white" />
-            <div className="h-44 animate-pulse rounded-[24px] border border-black/[0.06] bg-white" />
+            <div className="h-44 animate-pulse rounded-[24px] bg-[#F4F4F5]" />
+            <div className="h-44 animate-pulse rounded-[24px] bg-[#FFD7DC]" />
           </div>
         </div>
       }

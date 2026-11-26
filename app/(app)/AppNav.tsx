@@ -50,7 +50,11 @@ export function NewInvoiceHeaderButton() {
   }
 
   return (
-    <Button asChild size="sm" className="h-9 px-3.5 text-xs">
+    <Button
+      asChild
+      size="sm"
+      className="h-9 px-3.5 text-xs shadow-[0_3px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none"
+    >
       <Link href="/invoices/new">
         <Plus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
         <span className="md:hidden">New</span>
@@ -88,8 +92,10 @@ export function MobileBottomNav() {
             >
               <span
                 className={cn(
-                  "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
-                  isActive ? "bg-[#C3F584] text-[#111111]" : "bg-transparent"
+                  "flex h-7 w-12 items-center justify-center rounded-full border transition-all duration-150",
+                  isActive
+                    ? "border-black/10 bg-[#C3F584] text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.14)]"
+                    : "border-transparent bg-transparent"
                 )}
               >
                 <Icon

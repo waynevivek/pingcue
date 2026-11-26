@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { InlineEnvelopeSticker } from "@/app/components/HeroStickers";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { listInvoices, listSentEmailLogsByUser, requireUser } from "@/lib/db";
 import {
@@ -54,11 +53,11 @@ function buildFilterHref(status: InvoiceListFilter, query: string): string {
 
 function renderNextStepLabel(step: UpcomingReminderStep | undefined) {
   if (!step || step.kind === "paid") {
-    return <span className="text-[#15803D]">Settled</span>;
+    return <span className="font-semibold text-[#15803D]">Settled</span>;
   }
   if (step.kind === "paused") {
     return (
-      <span className="inline-flex items-center gap-1 text-[#1E3A8A]">
+      <span className="inline-flex items-center gap-1 font-medium text-[#1E3A8A]">
         <Pause className="h-3 w-3" aria-hidden="true" />
         <span>Paused until {formatShortDate(step.pausedUntil)}</span>
       </span>
@@ -66,8 +65,8 @@ function renderNextStepLabel(step: UpcomingReminderStep | undefined) {
   }
   if (step.kind === "scheduled") {
     return (
-      <span className="inline-flex items-center gap-1 font-medium text-[#111111] tabular-nums">
-        <CalendarClock className="h-3 w-3 text-[#52525B]" aria-hidden="true" />
+      <span className="inline-flex items-center gap-1 font-medium text-[#1E335C] tabular-nums">
+        <CalendarClock className="h-3 w-3" aria-hidden="true" />
         <span>
           {step.isDueNow
             ? `Due now (${formatOffsetBadge(step.offsetDays)})`
@@ -131,21 +130,22 @@ async function InvoicesListContent({
 
   return (
     <div className="space-y-5 md:space-y-6">
-      {/* Header */}
+      {/* Header with inline die-cut envelope sticker */}
       <div className="min-w-0">
-        <h1 className="font-sans text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[32px]">
-          Invoices
+        <h1 className="font-sans text-[28px] font-semibold leading-tight tracking-[-0.035em] text-[#111111] sm:text-[34px]">
+          Invoices{" "}
+          <InlineEnvelopeSticker className="ml-0.5 h-[0.78em] w-auto -rotate-[6deg]" />
         </h1>
         <p className="mt-1 text-sm text-[#52525B]">
           Track balances, pause schedules, and send email or WhatsApp nudges.
         </p>
       </div>
 
-      {/* Filter Pills with Counts + Search */}
+      {/* Tactile Keycap Filter Pills + Search */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <nav
           aria-label="Filter invoices"
-          className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:gap-2"
+          className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-1 sm:gap-2"
         >
           {FILTERS.map((filter) => {
             const isSelected = activeFilter === filter.key;
@@ -155,10 +155,10 @@ async function InvoicesListContent({
                 key={filter.key}
                 href={buildFilterHref(filter.key, searchQuery)}
                 aria-current={isSelected ? "page" : undefined}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-3.5 sm:py-2 ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-3.5 sm:py-2 ${
                   isSelected
-                    ? "border-[#111111] bg-[#111111] text-white shadow-[0_2px_0_rgba(17,17,17,0.2)]"
-                    : "border-black/[0.08] bg-white text-[#111111] hover:bg-[#F4F4F5]"
+                    ? "border-[#111111] bg-[#111111] text-white shadow-[0_3px_0_rgba(17,17,17,0.28)]"
+                    : "border-black/10 bg-white text-[#111111] shadow-[0_3px_0_rgba(17,17,17,0.08)] hover:-translate-y-0.5 hover:bg-[#FAFAFA]"
                 }`}
               >
                 <span>{filter.label}</span>
@@ -196,14 +196,14 @@ async function InvoicesListContent({
                 defaultValue={searchQuery}
                 placeholder="Search client or invoice..."
                 aria-label="Search invoices"
-                className="h-10 rounded-full bg-white pl-9 pr-3 text-base sm:text-sm"
+                className="h-10 rounded-full bg-[#FAFAFA] pl-9 pr-3 text-base sm:text-sm"
               />
             </div>
             {searchQuery && (
               <Link
                 href={buildFilterHref(activeFilter, "")}
                 aria-label="Clear search"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/[0.08] bg-white text-[#52525B] transition-colors hover:bg-[#F4F4F5] hover:text-[#111111]"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white text-[#52525B] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-colors hover:bg-[#F4F4F5] hover:text-[#111111]"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -212,8 +212,9 @@ async function InvoicesListContent({
         )}
       </div>
 
+      {/* Periwinkle Pastel Bento Tray */}
       {filtered.length === 0 ? (
-        <Card className="p-8 text-center sm:p-10">
+        <div className="rounded-[28px] border border-black/[0.06] bg-[#FFF1A8] p-6 text-center sm:p-10">
           <div className="mx-auto mb-3 flex justify-center">
             <InlineEnvelopeSticker className="h-11 w-auto -rotate-[5deg]" />
           </div>
@@ -222,23 +223,26 @@ async function InvoicesListContent({
               ? "No invoices yet"
               : "No matching invoices"}
           </p>
-          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[#52525B]">
+          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[#4B4116]">
             {invoices.length === 0
               ? "Add a client invoice with your payment link and due date to start automated follow-ups."
               : "Try switching filter tabs or clearing your search query."}
           </p>
           <div className="mt-5">
-            <Button asChild>
+            <Button
+              asChild
+              className="shadow-[0_3px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none"
+            >
               <Link href={invoices.length === 0 ? "/invoices/new" : "/invoices"}>
                 {invoices.length === 0 ? "Create invoice" : "Show all invoices"}
               </Link>
             </Button>
           </div>
-        </Card>
+        </div>
       ) : (
-        <>
-          {/* Mobile Phone-First Card List */}
-          <Card className="divide-y divide-black/[0.06] overflow-hidden md:hidden">
+        <div className="rounded-[28px] border border-black/[0.06] bg-[#D9E6FF] p-3 sm:p-4">
+          {/* Mobile Floating Collectible Cards */}
+          <div className="space-y-2.5 md:hidden">
             {filtered.map((invoice) => {
               const remaining = getRemainingMinor(
                 invoice.amount_minor,
@@ -257,7 +261,7 @@ async function InvoicesListContent({
                 <Link
                   key={invoice.id}
                   href={`/invoices/${invoice.id}`}
-                  className="block space-y-3 p-4 transition-all duration-150 active:scale-[0.995] active:bg-[#FAFAFA]"
+                  className="block space-y-3 rounded-2xl border border-black/[0.08] bg-white p-4 shadow-[0_3px_0_rgba(17,17,17,0.08)] transition-all duration-150 active:translate-y-[1px] active:shadow-none"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -327,10 +331,10 @@ async function InvoicesListContent({
                 </Link>
               );
             })}
-          </Card>
+          </div>
 
-          {/* Desktop Table */}
-          <Card className="hidden overflow-x-auto md:block">
+          {/* Desktop Crisp White Table inside Periwinkle Tray */}
+          <div className="hidden overflow-x-auto rounded-[20px] border border-black/[0.08] bg-white shadow-[0_4px_16px_-8px_rgba(15,23,42,0.1)] md:block">
             <table className="min-w-full divide-y divide-black/[0.06] text-left text-sm">
               <thead className="bg-[#FAFAFA] font-sans text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
                 <tr>
@@ -417,7 +421,7 @@ async function InvoicesListContent({
                       <td className="whitespace-nowrap px-5 py-4 text-right">
                         <Link
                           href={`/invoices/${invoice.id}`}
-                          className="inline-flex items-center gap-1 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                          className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.08)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                         >
                           <span>Manage</span>
                           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -428,8 +432,8 @@ async function InvoicesListContent({
                 })}
               </tbody>
             </table>
-          </Card>
-        </>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -440,8 +444,8 @@ export default function InvoicesPage(props: PageProps<"/invoices">) {
     <Suspense
       fallback={
         <div className="space-y-4">
-          <div className="h-9 w-40 animate-pulse rounded-xl bg-black/[0.06]" />
-          <div className="h-64 animate-pulse rounded-[24px] border border-black/[0.06] bg-white" />
+          <div className="h-9 w-40 animate-pulse rounded-xl bg-[#F4F4F5]" />
+          <div className="h-64 animate-pulse rounded-[28px] bg-[#D9E6FF]" />
         </div>
       }
     >

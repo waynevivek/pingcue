@@ -378,10 +378,10 @@ export function InvoiceForm(props: InvoiceFormProps) {
                         setDueDate(targetIso);
                         clearBlurError("due_date");
                       }}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 cursor-pointer active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
                         activePreset
-                          ? "border-[#111111] bg-[#111111] text-white"
-                          : "border-black/[0.08] bg-[#FAFAFA] text-[#52525B] hover:bg-[#F4F4F5] hover:text-[#111111]"
+                          ? "border-[#111111] bg-[#111111] text-white shadow-[0_2px_0_rgba(17,17,17,0.28)]"
+                          : "border-black/10 bg-white text-[#52525B] shadow-[0_2px_0_rgba(17,17,17,0.06)] hover:bg-[#FAFAFA] hover:text-[#111111]"
                       }`}
                     >
                       {preset.label}
@@ -520,7 +520,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
           type="submit"
           size="lg"
           disabled={props.disabled || pending}
-          className="w-full sm:w-auto"
+          className="w-full shadow-[0_4px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none sm:w-auto"
         >
           {pending
             ? "Saving..."

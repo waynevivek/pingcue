@@ -69,15 +69,15 @@ export function SettingsForm({
           />
         </div>
 
-        <div className="rounded-2xl border border-black/[0.07] bg-[#F7F7F5] px-4 py-3.5">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#52525B]">
+        <div className="rounded-2xl border border-black/[0.06] bg-[#FFF1A8] px-4 py-3.5">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#4B4116]">
             <Mail className="h-3.5 w-3.5 text-[#111111]" aria-hidden="true" />
             <span>Live email sign-off preview</span>
           </div>
-          <div className="mt-2.5 border-t border-black/[0.06] pt-2.5 text-xs leading-relaxed text-[#3F3F46]">
+          <div className="mt-2.5 border-t border-black/[0.08] pt-2.5 text-xs leading-relaxed text-[#4B4116]">
             <p>Thanks,</p>
             <p className="font-semibold text-[#111111]">{previewSender}</p>
-            <p className="mt-1.5 break-words font-mono text-[11px] text-[#71717A]">
+            <p className="mt-1.5 break-words font-mono text-[11px] text-[#574C1B]">
               Reply-To: {email}
             </p>
           </div>
@@ -138,7 +138,11 @@ export function SettingsForm({
       </div>
 
       <div className="flex justify-end pt-1">
-        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+        <Button
+          type="submit"
+          disabled={pending}
+          className="w-full shadow-[0_3px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none sm:w-auto"
+        >
           {pending ? "Saving..." : "Save settings"}
         </Button>
       </div>

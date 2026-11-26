@@ -59,7 +59,7 @@ async function UserNavStatus() {
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F7F7F5] text-[#111111]">
+    <div className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
       <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6 md:py-3 lg:px-8">
           <Link

@@ -41,7 +41,11 @@ export function WhatsappNudgeActions({
     <div className="mt-4 space-y-3">
       <div className="flex flex-wrap items-center gap-2.5">
         {active && waUrl && (
-          <Button asChild variant="success">
+          <Button
+            asChild
+            variant="success"
+            className="shadow-[0_3px_0_rgba(17,17,17,0.18)] active:translate-y-[1px] active:shadow-none"
+          >
             <a
               href={waUrl}
               target="_blank"
@@ -55,7 +59,12 @@ export function WhatsappNudgeActions({
           </Button>
         )}
 
-        <Button type="button" variant="outline" onClick={handleCopy}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCopy}
+          className="bg-white shadow-[0_3px_0_rgba(17,17,17,0.1)] active:translate-y-[1px] active:shadow-none"
+        >
           {copied ? (
             <>
               <Check className="h-4 w-4 text-[#16A34A]" aria-hidden="true" />
@@ -71,14 +80,16 @@ export function WhatsappNudgeActions({
       </div>
 
       {!active ? (
-        <p className="text-xs font-medium text-success-foreground">
+        <p className="text-xs font-medium text-[#1A2E05]">
           Invoice is marked paid—no WhatsApp nudge needed.
         </p>
       ) : !waUrl ? (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-[#28420C]">
           Add a client WhatsApp number in the Edit form below (e.g.{" "}
-          <span className="font-mono text-foreground">919876543210</span>) to
-          open WhatsApp directly, or copy the message above.
+          <span className="font-mono font-semibold text-[#111111]">
+            919876543210
+          </span>
+          ) to open WhatsApp directly, or copy the message above.
         </p>
       ) : null}
     </div>
