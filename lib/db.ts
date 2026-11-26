@@ -136,19 +136,40 @@ export async function getUserProfile(
 }
 
 export async function isEmailSuppressed(email: string): Promise<boolean> {
-  if (!getSupabaseAdminEnv()) return false;
-  const cleanEmail = email.trim().toLowerCase();
-  if (!cleanEmail) return false;
+  const suppressed = await listSuppressedEmails([email]);
+  return suppressed.has(email.trim().toLowerCase());
+}
+
+/** Batch-checks which client email addresses are currently suppressed (hard bounce or spam complaint). */
+export async function listSuppressedEmails(
+  emails: readonly string[]
+): Promise<Set<string>> {
+  const result = new Set<string>();
+  if (!getSupabaseAdminEnv()) return result;
+
+  const unique = Array.from(
+    new Set(
+      emails
+        .map((email) => email.trim().toLowerCase())
+        .filter((email) => email.length > 0)
+    )
+  );
+  if (unique.length === 0) return result;
 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("suppressed_emails")
     .select("email")
-    .eq("email", cleanEmail)
-    .maybeSingle();
+    .in("email", unique);
 
-  if (error) return false;
-  return Boolean(data);
+  if (error || !data) return result;
+
+  for (const row of data) {
+    if (typeof row.email === "string" && row.email.trim()) {
+      result.add(row.email.trim().toLowerCase());
+    }
+  }
+  return result;
 }
 
 export async function listInvoices(userId: string): Promise<Invoice[]> {

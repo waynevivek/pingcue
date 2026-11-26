@@ -19,6 +19,7 @@ export type InlineEmailPreviewStep = {
 export function InlineEmailPreview({
   steps,
   defaultOffset,
+  fromLabel,
   clientEmail,
   replyTo,
   paused,
@@ -26,6 +27,7 @@ export function InlineEmailPreview({
 }: {
   steps: InlineEmailPreviewStep[];
   defaultOffset: number;
+  fromLabel?: string;
   clientEmail: string;
   replyTo: string;
   paused?: boolean;
@@ -130,6 +132,14 @@ export function InlineEmailPreview({
       <div className="rounded-[20px] border border-black/[0.08] bg-[#FAFAFA] p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-black/[0.07] pb-3">
           <div className="min-w-0 space-y-0.5 font-mono text-[11px] text-[#52525B]">
+            {fromLabel && (
+              <p className="break-words">
+                <span className="font-sans font-semibold text-[#111111]">
+                  From:
+                </span>{" "}
+                {fromLabel}
+              </p>
+            )}
             <p className="break-words">
               <span className="font-sans font-semibold text-[#111111]">
                 To:

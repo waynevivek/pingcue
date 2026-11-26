@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/db";
+import { isResendConfigured, sendReminderEmail } from "@/lib/email";
+import { buildDeliveryIssueAlertEmail } from "@/lib/reminders";
 import {
   extractResendRecipients,
   getSuppressionReasonForResendEvent,
@@ -7,6 +9,7 @@ import {
   verifyResendWebhook,
   type ResendWebhookEvent,
 } from "@/lib/resend-webhook";
+import { resolveAppOrigin } from "@/lib/site-config";
 import { getSupabaseAdminEnv } from "@/lib/supabase-env";
 
 export async function POST(request: Request) {
@@ -104,6 +107,19 @@ export async function POST(request: Request) {
   if (suppressionReason) {
     const recipients = extractResendRecipients(event);
     if (recipients.length > 0) {
+      const { data: existingSuppressed } = await supabase
+        .from("suppressed_emails")
+        .select("email")
+        .in("email", recipients);
+
+      const alreadySuppressedSet = new Set(
+        (existingSuppressed ?? [])
+          .map((row) =>
+            typeof row.email === "string" ? row.email.trim().toLowerCase() : ""
+          )
+          .filter(Boolean)
+      );
+
       const nowIso = new Date().toISOString();
       const rows = recipients.map((email) => ({
         email,
@@ -132,6 +148,91 @@ export async function POST(request: Request) {
           count: recipients.length,
         })
       );
+
+      // Proactively alert the freelancer once when their client reminder email is newly suppressed.
+      const newlySuppressed = recipients.some(
+        (email) => !alreadySuppressedSet.has(email)
+      );
+      if (newlySuppressed && emailId && isResendConfigured()) {
+        try {
+          const { data: logRow } = await supabase
+            .from("reminder_logs")
+            .select("invoice_id, user_id, recipient_email")
+            .eq("resend_id", emailId)
+            .eq("channel", "email")
+            .maybeSingle();
+
+          if (logRow?.invoice_id && logRow?.user_id) {
+            const [invoiceRes, profileRes] = await Promise.all([
+              supabase
+                .from("invoices")
+                .select("id, title, client_name, client_email")
+                .eq("id", logRow.invoice_id)
+                .maybeSingle(),
+              supabase
+                .from("profiles")
+                .select("email, display_name")
+                .eq("id", logRow.user_id)
+                .maybeSingle(),
+            ]);
+
+            const invoice = invoiceRes.data;
+            const profile = profileRes.data;
+            const freelancerEmail = profile?.email?.trim().toLowerCase() ?? "";
+            const affectedEmail = (
+              invoice?.client_email ||
+              logRow.recipient_email ||
+              recipients[0]
+            )
+              .trim()
+              .toLowerCase();
+
+            // Guard against bounce loops if freelancer email matches the suppressed address.
+            if (
+              invoice &&
+              freelancerEmail &&
+              freelancerEmail !== affectedEmail &&
+              !recipients.includes(freelancerEmail)
+            ) {
+              const { data: freelancerSuppressed } = await supabase
+                .from("suppressed_emails")
+                .select("email")
+                .eq("email", freelancerEmail)
+                .maybeSingle();
+
+              if (!freelancerSuppressed) {
+                const alert = buildDeliveryIssueAlertEmail({
+                  freelancerName: profile?.display_name ?? null,
+                  clientName: invoice.client_name,
+                  clientEmail: invoice.client_email,
+                  invoiceTitle: invoice.title,
+                  invoiceId: invoice.id,
+                  reason: suppressionReason,
+                  appOrigin: resolveAppOrigin(request.url),
+                });
+
+                const sendRes = await sendReminderEmail({
+                  to: freelancerEmail,
+                  subject: alert.subject,
+                  text: alert.text,
+                  html: alert.html,
+                });
+
+                if (!sendRes.ok) {
+                  console.warn(
+                    `Failed to send delivery issue alert for invoice ${invoice.id}: ${sendRes.error}`
+                  );
+                }
+              }
+            }
+          }
+        } catch (alertErr) {
+          console.warn(
+            "Failed to dispatch freelancer delivery issue alert:",
+            alertErr instanceof Error ? alertErr.message : "unknown error"
+          );
+        }
+      }
     }
   }
 

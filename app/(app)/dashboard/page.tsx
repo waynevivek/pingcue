@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronRight,
+  MailX,
   MessageSquare,
   Pause,
   Plus,
@@ -23,6 +24,7 @@ import {
   getUserProfile,
   listInvoices,
   listSentEmailLogsByUser,
+  listSuppressedEmails,
   requireUser,
 } from "@/lib/db";
 import {
@@ -114,6 +116,9 @@ async function DashboardContent({
   const passwordReset = passwordResetParam === "1";
 
   const activeInvoices = invoices.filter(isInvoiceActive);
+  const suppressedEmails = await listSuppressedEmails(
+    activeInvoices.map((inv) => inv.client_email)
+  );
   const currencyTotals = computeCurrencyTotals(invoices, todayIso);
   const isFree = profile.plan === "free";
   const greetingName = getGreetingName(profile.display_name);
@@ -129,6 +134,10 @@ async function DashboardContent({
   }
 
   const upcomingQueue = activeInvoices
+    .filter(
+      (invoice) =>
+        !suppressedEmails.has(invoice.client_email.trim().toLowerCase())
+    )
     .map((invoice) => ({
       invoice,
       step: invoiceNextSteps.get(invoice.id),
@@ -551,6 +560,9 @@ async function DashboardContent({
                       )
                     : 0;
                 const nextStep = invoiceNextSteps.get(invoice.id);
+                const emailSuppressed = suppressedEmails.has(
+                  invoice.client_email.trim().toLowerCase()
+                );
 
                 return (
                   <Link
@@ -566,6 +578,7 @@ async function DashboardContent({
                         <InvoiceStatusBadges
                           invoice={invoice}
                           todayIso={todayIso}
+                          emailSuppressed={emailSuppressed}
                         />
                       </div>
 
@@ -576,7 +589,12 @@ async function DashboardContent({
                         <span className="tabular-nums">
                           Due {formatShortDate(invoice.due_date)}
                         </span>
-                        {nextStep?.kind === "scheduled" && (
+                        {emailSuppressed ? (
+                          <span className="inline-flex items-center gap-1 font-medium text-[#9F1239]">
+                            <MailX className="h-3 w-3" aria-hidden="true" />
+                            <span>Use WhatsApp or fix email</span>
+                          </span>
+                        ) : nextStep?.kind === "scheduled" ? (
                           <span className="inline-flex items-center gap-1 font-medium text-[#1E335C] tabular-nums">
                             <CalendarClock
                               className="h-3 w-3"
@@ -586,13 +604,12 @@ async function DashboardContent({
                               ? `Ping due (${formatOffsetBadge(nextStep.offsetDays)})`
                               : `Next ${formatOffsetBadge(nextStep.offsetDays)} · ${formatShortDate(nextStep.scheduledDate)}`}
                           </span>
-                        )}
-                        {nextStep?.kind === "paused" && (
+                        ) : nextStep?.kind === "paused" ? (
                           <span className="inline-flex items-center gap-1 font-medium text-[#1E3A8A]">
                             <Pause className="h-3 w-3" aria-hidden="true" />
                             Paused
                           </span>
-                        )}
+                        ) : null}
                         {invoice.client_whatsapp && (
                           <span
                             title="WhatsApp ready"

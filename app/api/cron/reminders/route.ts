@@ -355,6 +355,7 @@ export async function GET(request: Request) {
         const result = await sendReminderEmail({
           to: invoice.client_email,
           replyTo: profile.email,
+          fromName: profile.display_name,
           subject: email.subject,
           text: email.text,
           html: email.html,

@@ -1,7 +1,9 @@
+import { MailX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   formatShortDate,
   getInvoiceStatus,
+  isInvoiceActive,
   isInvoiceOverdue,
   isInvoicePaused,
   type Invoice,
@@ -10,17 +12,20 @@ import {
 export function InvoiceStatusBadges({
   invoice,
   todayIso,
+  emailSuppressed = false,
 }: {
   invoice: Pick<
     Invoice,
     "amount_minor" | "amount_received_minor" | "due_date" | "paused_until"
   >;
   todayIso: string;
+  emailSuppressed?: boolean;
 }) {
   const status = getInvoiceStatus(
     invoice.amount_minor,
     invoice.amount_received_minor
   );
+  const active = isInvoiceActive(invoice);
   const overdue = isInvoiceOverdue(invoice, todayIso);
   const paused = isInvoicePaused(invoice, todayIso);
 
@@ -44,6 +49,13 @@ export function InvoiceStatusBadges({
       <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
 
       {overdue && <Badge variant="overdue">Overdue</Badge>}
+
+      {active && emailSuppressed && (
+        <Badge variant="overdue" className="gap-1">
+          <MailX className="h-3 w-3" aria-hidden="true" />
+          <span>Email paused</span>
+        </Badge>
+      )}
 
       {paused && invoice.paused_until && (
         <Badge variant="primary">

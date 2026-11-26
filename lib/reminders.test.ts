@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {
+  formatSenderDisplayName,
+  formatSenderFromAddress,
+} from "./email.ts";
 import type { Invoice } from "./invoices.ts";
 import {
   buildCronAlertEmail,
+  buildDeliveryIssueAlertEmail,
   buildFreelancerDigestEmail,
   buildReminderEmail,
   buildWhatsappNudge,
@@ -253,4 +258,62 @@ test("getUpcomingScheduledStep reports paid, paused, due-now, upcoming, and comp
     ),
     { kind: "complete" }
   );
+});
+
+test("formatSenderDisplayName and formatSenderFromAddress personalize and sanitize From headers", () => {
+  const base = "PingCue <reminders@getpingcue.com>";
+
+  assert.equal(formatSenderDisplayName(null), "PingCue");
+  assert.equal(formatSenderDisplayName("   "), "PingCue");
+  assert.equal(formatSenderDisplayName("Vivek Sharma"), "Vivek Sharma via PingCue");
+  assert.equal(
+    formatSenderDisplayName("Northstar via PingCue"),
+    "Northstar via PingCue"
+  );
+
+  assert.equal(formatSenderFromAddress(base, ""), base);
+  assert.equal(
+    formatSenderFromAddress(base, "Vivek Sharma"),
+    "Vivek Sharma via PingCue <reminders@getpingcue.com>"
+  );
+  assert.equal(
+    formatSenderFromAddress("reminders@getpingcue.com", "Northstar, LLC"),
+    '"Northstar, LLC via PingCue" <reminders@getpingcue.com>'
+  );
+  // Strips CR/LF and angle brackets to prevent header injection
+  assert.equal(
+    formatSenderFromAddress(base, 'Evil\r\nBcc: victim@x.co <bad>"'),
+    '"Evil Bcc: victim@x.co bad via PingCue" <reminders@getpingcue.com>'
+  );
+});
+
+test("buildDeliveryIssueAlertEmail formats bounce and spam alerts with escaped HTML and invoice link", () => {
+  const bounceAlert = buildDeliveryIssueAlertEmail({
+    freelancerName: "Vivek",
+    clientName: "Priya <Agency>",
+    clientEmail: "priya@bad-domain.co",
+    invoiceTitle: "Brand Sprint",
+    invoiceId: "inv-123",
+    reason: "bounced",
+    appOrigin: "https://getpingcue.com/",
+  });
+
+  assert.match(bounceAlert.subject, /bounced for Brand Sprint/);
+  assert.match(bounceAlert.text, /https:\/\/getpingcue\.com\/invoices\/inv-123/);
+  assert.match(bounceAlert.text, /WhatsApp nudge/i);
+  assert.ok(!bounceAlert.html.includes("<Agency>"));
+  assert.ok(bounceAlert.html.includes("&lt;Agency&gt;"));
+
+  const spamAlert = buildDeliveryIssueAlertEmail({
+    freelancerName: null,
+    clientName: "Rohan",
+    clientEmail: "rohan@client.co",
+    invoiceTitle: "Retainer",
+    invoiceId: "inv-456",
+    reason: "complained",
+    appOrigin: null,
+  });
+
+  assert.match(spamAlert.subject, /marked a PingCue reminder as spam/);
+  assert.ok(!spamAlert.text.includes("Open invoice:"));
 });

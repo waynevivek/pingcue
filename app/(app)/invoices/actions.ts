@@ -381,6 +381,7 @@ export async function sendTestEmailAction(
   const result = await sendReminderEmail({
     to: user.email,
     replyTo: user.email,
+    fromName: profile.display_name,
     subject: email.subject,
     text: email.text,
     html: email.html,
@@ -534,6 +535,7 @@ export async function sendReminderNowAction(
   const result = await sendReminderEmail({
     to: invoice.client_email,
     replyTo: user.email,
+    fromName: profile.display_name,
     subject: email.subject,
     text: email.text,
     html: email.html,

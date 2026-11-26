@@ -5,6 +5,7 @@ import {
   ArrowRight,
   CalendarClock,
   ChevronRight,
+  MailX,
   MessageSquare,
   Pause,
   Search,
@@ -13,7 +14,12 @@ import {
 import { InlineEnvelopeSticker } from "@/app/components/HeroStickers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listInvoices, listSentEmailLogsByUser, requireUser } from "@/lib/db";
+import {
+  listInvoices,
+  listSentEmailLogsByUser,
+  listSuppressedEmails,
+  requireUser,
+} from "@/lib/db";
 import {
   filterInvoices,
   formatMoney,
@@ -51,9 +57,20 @@ function buildFilterHref(status: InvoiceListFilter, query: string): string {
   return qs ? `/invoices?${qs}` : "/invoices";
 }
 
-function renderNextStepLabel(step: UpcomingReminderStep | undefined) {
+function renderNextStepLabel(
+  step: UpcomingReminderStep | undefined,
+  emailSuppressed = false
+) {
   if (!step || step.kind === "paid") {
     return <span className="font-semibold text-[#15803D]">Settled</span>;
+  }
+  if (emailSuppressed) {
+    return (
+      <span className="inline-flex items-center gap-1 font-medium text-[#9F1239]">
+        <MailX className="h-3 w-3" aria-hidden="true" />
+        <span>Email paused</span>
+      </span>
+    );
   }
   if (step.kind === "paused") {
     return (
@@ -117,6 +134,10 @@ async function InvoicesListContent({
     query: searchQuery,
     todayIso,
   });
+
+  const suppressedEmails = await listSuppressedEmails(
+    filtered.filter(isInvoiceActive).map((inv) => inv.client_email)
+  );
 
   const nextStepMap = new Map<string, UpcomingReminderStep>();
   for (const invoice of filtered) {
@@ -256,6 +277,9 @@ async function InvoicesListContent({
                     )
                   : 0;
               const nextStep = nextStepMap.get(invoice.id);
+              const emailSuppressed =
+                isInvoiceActive(invoice) &&
+                suppressedEmails.has(invoice.client_email.trim().toLowerCase());
 
               return (
                 <Link
@@ -305,6 +329,7 @@ async function InvoicesListContent({
                       <InvoiceStatusBadges
                         invoice={invoice}
                         todayIso={todayIso}
+                        emailSuppressed={emailSuppressed}
                       />
                       {invoice.client_whatsapp && (
                         <span
@@ -321,7 +346,7 @@ async function InvoicesListContent({
                     </div>
 
                     <div className="inline-flex items-center gap-1 text-xs">
-                      {renderNextStepLabel(nextStep)}
+                      {renderNextStepLabel(nextStep, emailSuppressed)}
                       <ChevronRight
                         className="h-3.5 w-3.5 text-[#71717A]"
                         aria-hidden="true"
@@ -360,6 +385,11 @@ async function InvoicesListContent({
                         )
                       : 0;
                   const nextStep = nextStepMap.get(invoice.id);
+                  const emailSuppressed =
+                    isInvoiceActive(invoice) &&
+                    suppressedEmails.has(
+                      invoice.client_email.trim().toLowerCase()
+                    );
 
                   return (
                     <tr
@@ -410,12 +440,13 @@ async function InvoicesListContent({
                         )}
                       </td>
                       <td className="whitespace-nowrap px-5 py-4 text-xs">
-                        {renderNextStepLabel(nextStep)}
+                        {renderNextStepLabel(nextStep, emailSuppressed)}
                       </td>
                       <td className="px-5 py-4">
                         <InvoiceStatusBadges
                           invoice={invoice}
                           todayIso={todayIso}
+                          emailSuppressed={emailSuppressed}
                         />
                       </td>
                       <td className="whitespace-nowrap px-5 py-4 text-right">

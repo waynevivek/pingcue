@@ -28,6 +28,7 @@ import {
   listReminderLogs,
   requireUser,
 } from "@/lib/db";
+import { formatSenderDisplayName } from "@/lib/email";
 import {
   addDaysIso,
   formatMoney,
@@ -253,7 +254,11 @@ async function InvoiceDetailContent({
                   <h1 className="font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[26px]">
                     {invoice.title}
                   </h1>
-                  <InvoiceStatusBadges invoice={invoice} todayIso={todayIso} />
+                  <InvoiceStatusBadges
+                    invoice={invoice}
+                    todayIso={todayIso}
+                    emailSuppressed={clientEmailSuppressed}
+                  />
                 </div>
 
                 <div
@@ -513,6 +518,7 @@ async function InvoiceDetailContent({
         <InlineEmailPreview
           steps={previewSteps}
           defaultOffset={nextOffset}
+          fromLabel={formatSenderDisplayName(profile.display_name)}
           clientEmail={invoice.client_email}
           replyTo={replyToEmail}
           paused={paused}

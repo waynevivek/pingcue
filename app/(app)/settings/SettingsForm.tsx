@@ -29,7 +29,13 @@ export function SettingsForm({
     INITIAL_STATE
   );
 
-  const previewSender = displayName.trim() || email;
+  const cleanName = displayName.trim();
+  const previewSender = cleanName || email;
+  const previewFrom = cleanName
+    ? /via pingcue$/i.test(cleanName)
+      ? cleanName
+      : `${cleanName} via PingCue`
+    : "PingCue";
 
   return (
     <form action={formAction} className="space-y-6">
@@ -72,10 +78,16 @@ export function SettingsForm({
         <div className="rounded-2xl border border-black/[0.06] bg-[#FFF1A8] px-4 py-3.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#4B4116]">
             <Mail className="h-3.5 w-3.5 text-[#111111]" aria-hidden="true" />
-            <span>Live email sign-off preview</span>
+            <span>Live email sender &amp; sign-off preview</span>
           </div>
           <div className="mt-2.5 border-t border-black/[0.08] pt-2.5 text-xs leading-relaxed text-[#4B4116]">
-            <p>Thanks,</p>
+            <p className="break-words font-mono text-[11px] text-[#574C1B]">
+              From:{" "}
+              <span className="font-sans font-semibold text-[#111111]">
+                {previewFrom}
+              </span>
+            </p>
+            <p className="mt-2">Thanks,</p>
             <p className="font-semibold text-[#111111]">{previewSender}</p>
             <p className="mt-1.5 break-words font-mono text-[11px] text-[#574C1B]">
               Reply-To: {email}

@@ -439,6 +439,79 @@ export function buildCronAlertEmail({
   return { subject, text: textLines.join("\n"), html };
 }
 
+/** Builds a proactive alert email to the freelancer when a client email bounces or reports spam. */
+export function buildDeliveryIssueAlertEmail({
+  freelancerName,
+  clientName,
+  clientEmail,
+  invoiceTitle,
+  invoiceId,
+  reason,
+  appOrigin,
+}: {
+  freelancerName?: string | null;
+  clientName: string;
+  clientEmail: string;
+  invoiceTitle: string;
+  invoiceId: string;
+  reason: "bounced" | "complained" | "suppressed";
+  appOrigin?: string | null;
+}): { subject: string; text: string; html: string } {
+  const greetingName = freelancerName?.trim() || "there";
+  const isComplaint = reason === "complained";
+  const cleanOrigin = appOrigin?.replace(/\/+$/, "") || null;
+  const invoiceUrl = cleanOrigin
+    ? `${cleanOrigin}/invoices/${invoiceId}`
+    : null;
+
+  const subject = isComplaint
+    ? `Action needed: ${clientName} marked a PingCue reminder as spam`
+    : `Action needed: reminder email bounced for ${invoiceTitle} (${clientName})`;
+
+  const detail = isComplaint
+    ? `A scheduled PingCue reminder for "${invoiceTitle}" to ${clientName} (${clientEmail}) was marked as spam.`
+    : `A scheduled PingCue reminder for "${invoiceTitle}" to ${clientName} (${clientEmail}) bounced and could not be delivered.`;
+
+  const guidance = isComplaint
+    ? "Automated email reminders to this address are paused to protect deliverability. Follow up directly using the 1-tap WhatsApp nudge on your invoice page."
+    : "Automated email reminders to this address are paused to protect deliverability. Check for any email typo in Edit invoice (saving a corrected email resumes reminders automatically), or follow up using the 1-tap WhatsApp nudge.";
+
+  const textLines = [
+    `Hi ${greetingName},`,
+    "",
+    detail,
+    "",
+    guidance,
+    ...(invoiceUrl ? ["", `Open invoice: ${invoiceUrl}`] : []),
+    "",
+    "— PingCue",
+  ];
+
+  const safeGreeting = escapeHtml(greetingName);
+  const safeDetail = escapeHtml(detail);
+  const safeGuidance = escapeHtml(guidance);
+  const safeInvoiceUrl = invoiceUrl ? escapeHtml(invoiceUrl) : null;
+
+  const html = `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#111111;line-height:1.6;">
+    <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #fecdd3;border-radius:16px;padding:28px;">
+      <p style="margin:0 0 14px;">Hi ${safeGreeting},</p>
+      <p style="margin:0 0 14px;font-weight:600;color:#9f1239;">${safeDetail}</p>
+      <p style="margin:0 0 18px;font-size:14px;color:#3f3f46;">${safeGuidance}</p>
+      ${
+        safeInvoiceUrl
+          ? `<p style="margin:20px 0 12px;"><a href="${safeInvoiceUrl}" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:9999px;">Open invoice &amp; WhatsApp nudge</a></p>`
+          : ""
+      }
+      <p style="margin:16px 0 0;font-size:12px;color:#71717a;">— PingCue</p>
+    </div>
+  </body>
+</html>`;
+
+  return { subject, text: textLines.join("\n"), html };
+}
+
 /** Builds a zero-API wa.me WhatsApp nudge link and Free-plan truncated teaser. */
 export function buildWhatsappNudge({
   invoice,

@@ -11,6 +11,40 @@ export function getResendFromEmail(): string {
   );
 }
 
+/** Formats a safe human-readable sender label ("Name via PingCue" or "PingCue"). */
+export function formatSenderDisplayName(senderName?: string | null): string {
+  const cleaned = (senderName ?? "")
+    .replace(/[\r\n\x00-\x1f\x7f"<>\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) return "PingCue";
+  if (/via pingcue$/i.test(cleaned)) return cleaned;
+  return `${cleaned} via PingCue`;
+}
+
+/** Combines a sanitized freelancer display name with the authenticated Resend From address. */
+export function formatSenderFromAddress(
+  baseFrom: string,
+  senderName?: string | null
+): string {
+  const trimmedBase = baseFrom.trim();
+  const displayName = formatSenderDisplayName(senderName);
+  if (displayName === "PingCue") {
+    return trimmedBase;
+  }
+
+  const angleMatch = trimmedBase.match(/<([^<>]+)>/);
+  const address = (angleMatch ? angleMatch[1] : trimmedBase).trim();
+  if (!address || !address.includes("@")) {
+    return trimmedBase;
+  }
+
+  const needsQuotes = /[,.:;@()[\]]/.test(displayName);
+  const formattedName = needsQuotes ? `"${displayName}"` : displayName;
+  return `${formattedName} <${address}>`;
+}
+
 export function isResendUsingSandboxFrom(): boolean {
   return getResendFromEmail().toLowerCase().includes("onboarding@resend.dev");
 }
@@ -21,16 +55,18 @@ export type SendEmailResult =
   | { ok: true; id: string }
   | { ok: false; error: string; quotaExceeded?: boolean };
 
-/** Sends one reminder email via Resend with freelancer Reply-To and clear error handling. */
+/** Sends one reminder email via Resend with freelancer display name, Reply-To, and clear error handling. */
 export async function sendReminderEmail({
   to,
   replyTo,
+  fromName,
   subject,
   text,
   html,
 }: {
   to: string;
   replyTo?: string;
+  fromName?: string | null;
   subject: string;
   text: string;
   html: string;
@@ -58,7 +94,7 @@ export async function sendReminderEmail({
 
   try {
     const { data, error } = await resend.emails.send({
-      from: getResendFromEmail(),
+      from: formatSenderFromAddress(getResendFromEmail(), fromName),
       to: [to],
       ...(replyTo ? { replyTo } : {}),
       subject,
