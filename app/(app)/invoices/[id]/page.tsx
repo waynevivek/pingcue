@@ -265,7 +265,7 @@ async function InvoiceDetailContent({
                   {invoice.client_name}
                 </span>
                 <span aria-hidden="true">·</span>
-                <span className="break-all sm:break-normal">
+                <span className="break-words">
                   {invoice.client_email}
                 </span>
                 {invoice.client_whatsapp && (

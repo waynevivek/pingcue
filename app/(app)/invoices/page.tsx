@@ -155,7 +155,7 @@ async function InvoicesListContent({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <nav
           aria-label="Filter invoices"
-          className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-0.5"
+          className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:gap-2"
         >
           {FILTERS.map((filter) => {
             const isSelected = activeFilter === filter.key;
@@ -165,7 +165,7 @@ async function InvoicesListContent({
                 key={filter.key}
                 href={buildFilterHref(filter.key, searchQuery)}
                 aria-current={isSelected ? "page" : undefined}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-3.5 sm:py-2 ${
                   isSelected
                     ? "border-[#111111] bg-[#111111] text-white shadow-[0_2px_0_rgba(17,17,17,0.2)]"
                     : "border-black/[0.08] bg-white text-[#111111] hover:bg-[#F4F4F5]"

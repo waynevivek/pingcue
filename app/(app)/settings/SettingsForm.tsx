@@ -110,7 +110,7 @@ export function SettingsForm({
             </span>
             <span className="block text-xs leading-relaxed text-[#52525B]">
               Sends one concise recap to{" "}
-              <span className="break-all font-mono text-[#111111] sm:break-normal">
+              <span className="break-words font-mono text-[#111111]">
                 {email}
               </span>{" "}
               whenever the automated cron emails a client.
