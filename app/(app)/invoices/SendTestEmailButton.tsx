@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { sendTestEmailAction, type TestEmailState } from "./actions";
 
 const INITIAL_STATE: TestEmailState = {};
@@ -14,22 +13,22 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="shrink-0 space-y-2">
       <form action={formAction}>
-        <Button
+        <button
           type="submit"
           disabled={pending}
-          className="w-full shadow-[0_3px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none sm:w-auto"
+          className="inline-flex h-8 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[8px] border border-black/10 bg-white px-3 text-xs font-medium text-[#131316] shadow-[0_1px_2px_rgba(19,19,22,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors hover:bg-[#F5F5F3] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#131316] sm:w-auto"
         >
-          <Mail className="h-4 w-4" aria-hidden="true" />
-          <span>{pending ? "Sending test email..." : "Send test email to me"}</span>
-        </Button>
+          <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>{pending ? "Sending test..." : "Send test to me"}</span>
+        </button>
       </form>
 
       {state.success && (
         <p
           role="status"
-          className="rounded-xl border border-[#BBF7D0] bg-[#DCFCE7] px-3 py-2 text-xs font-medium text-[#14532D]"
+          className="rounded-[10px] border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-2 text-xs font-medium text-[#15803D]"
         >
           {state.success}
         </p>
@@ -38,7 +37,7 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
       {state.error && (
         <p
           role="alert"
-          className="rounded-xl border border-[#FECDD3] bg-[#FFE4E6] px-3 py-2 text-xs font-medium text-[#9F1239]"
+          className="rounded-[10px] border border-[#FECDD3] bg-[#FFF1F2] px-3 py-2 text-xs font-medium text-[#BE123C]"
         >
           {state.error}
         </p>

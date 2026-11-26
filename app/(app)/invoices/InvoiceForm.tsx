@@ -378,10 +378,10 @@ export function InvoiceForm(props: InvoiceFormProps) {
                         setDueDate(targetIso);
                         clearBlurError("due_date");
                       }}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 cursor-pointer active:translate-y-[1px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] ${
+                      className={`rounded-[7px] border px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#131316] ${
                         activePreset
-                          ? "border-[#111111] bg-[#111111] text-white shadow-[0_2px_0_rgba(17,17,17,0.28)]"
-                          : "border-black/10 bg-white text-[#52525B] shadow-[0_2px_0_rgba(17,17,17,0.06)] hover:bg-[#FAFAFA] hover:text-[#111111]"
+                          ? "border-[#131316] bg-[#131316] text-white"
+                          : "border-black/[0.08] bg-[#F5F5F3] text-[#52525B] hover:border-black/15 hover:text-[#131316]"
                       }`}
                     >
                       {preset.label}
@@ -518,9 +518,8 @@ export function InvoiceForm(props: InvoiceFormProps) {
       <div className="flex items-center justify-end gap-3 pt-1">
         <Button
           type="submit"
-          size="lg"
           disabled={props.disabled || pending}
-          className="w-full shadow-[0_4px_0_rgba(17,17,17,0.28)] active:translate-y-[1px] active:shadow-none sm:w-auto"
+          className="h-10 w-full rounded-[9px] border border-[#131316] bg-[#131316] px-5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(19,19,22,0.18),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-[#26262B] sm:w-auto"
         >
           {pending
             ? "Saving..."

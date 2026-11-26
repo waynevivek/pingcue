@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { deleteInvoiceAction, type DeleteInvoiceState } from "./actions";
 
 const INITIAL_STATE: DeleteInvoiceState = {};
@@ -15,15 +14,13 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
 
   if (!confirming) {
     return (
-      <Button
+      <button
         type="button"
-        variant="outline"
-        size="sm"
         onClick={() => setConfirming(true)}
-        className="border-[#FECDD3] text-[#BE123C] hover:bg-[#FFE4E6]"
+        className="inline-flex h-8 items-center justify-center rounded-[8px] border border-[#FECDD3] bg-white px-3 text-xs font-medium text-[#BE123C] shadow-[0_1px_2px_rgba(19,19,22,0.03)] transition-colors hover:bg-[#FFF1F2] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E11D48]"
       >
         Delete invoice
-      </Button>
+      </button>
     );
   }
 
@@ -31,27 +28,25 @@ export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
     <div className="space-y-2 text-right">
       <div className="flex flex-wrap items-center justify-end gap-2">
         <span className="text-xs font-medium text-[#BE123C]">
-          Delete this invoice permanently?
+          Delete permanently?
         </span>
         <form action={formAction}>
-          <Button
+          <button
             type="submit"
-            variant="destructive"
-            size="sm"
             disabled={pending}
+            className="inline-flex h-8 items-center rounded-[8px] bg-[#E11D48] px-3 text-xs font-medium text-white transition-colors hover:bg-[#BE123C] cursor-pointer disabled:opacity-60"
           >
             {pending ? "Deleting..." : "Confirm delete"}
-          </Button>
+          </button>
         </form>
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
           disabled={pending}
           onClick={() => setConfirming(false)}
+          className="inline-flex h-8 items-center rounded-[8px] border border-black/10 bg-white px-3 text-xs font-medium text-[#131316] hover:bg-[#F5F5F3] cursor-pointer disabled:opacity-60"
         >
           Cancel
-        </Button>
+        </button>
       </div>
       {state.error && (
         <p role="alert" className="text-xs font-medium text-[#BE123C]">

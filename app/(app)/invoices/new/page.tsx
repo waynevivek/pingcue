@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { countActiveInvoices, getUserProfile, requireUser } from "@/lib/db";
 import { addDaysIso, getTodayIsoDate } from "@/lib/invoices";
-import { DaylightStage } from "../../DaylightStage";
 import { InvoiceForm } from "../InvoiceForm";
 
 export const metadata: Metadata = {
@@ -24,58 +23,55 @@ async function NewInvoiceContent() {
   const atFreeLimit = profile.plan === "free" && activeCount >= 1;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5 md:space-y-6">
+    <div className="mx-auto max-w-xl space-y-4 md:space-y-5">
       <div>
         <Link
           href="/invoices"
-          className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#FAFAFA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+          className="inline-flex items-center gap-1 text-xs font-medium text-[#63636A] transition-colors hover:text-[#131316]"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Back to invoices</span>
+          <span>Invoices</span>
         </Link>
-        <h1 className="mt-4 font-sans text-[28px] font-semibold leading-tight tracking-[-0.035em] text-[#111111] sm:text-[34px]">
+        <h1 className="mt-1.5 font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#131316] sm:text-[24px]">
           New invoice
         </h1>
-        <p className="mt-1 text-sm text-[#52525B]">
-          Add the client, payment link, and due date. PingCue schedules
-          escalating email reminders automatically.
+        <p className="mt-1 text-xs text-[#63636A]">
+          Add client details, due date, and payment link. PingCue schedules
+          escalating reminders automatically.
         </p>
       </div>
 
       {atFreeLimit && (
         <div
           role="note"
-          className="flex flex-col gap-3 rounded-[24px] border-2 border-[#111111] bg-[#FFF1A8] p-4 text-sm text-[#4B4116] sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          className="flex flex-col gap-3 rounded-[16px] border border-black/[0.08] bg-[#FFFDF7] p-4 text-xs sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="font-semibold text-[#111111]">
+            <p className="font-semibold text-[#131316]">
               Free plan limit reached (1/1 active invoice)
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#4B4116]">
-              Mark your current active invoice as paid to free this slot, or
-              unlock the <strong>$19 one-time Founding Pass</strong> for
-              unlimited active invoices.
+            <p className="mt-0.5 leading-relaxed text-[#63636A]">
+              Mark your active invoice paid to free this slot, or unlock the
+              one-time $19 Founding Pass for unlimited invoices.
             </p>
           </div>
           <UpgradeCheckoutButton
             variant="compact"
             label="Unlock unlimited — $19"
-            className="shrink-0"
+            className="shrink-0 rounded-[9px]"
           />
         </div>
       )}
 
-      <DaylightStage mascot sleeping={atFreeLimit}>
-        <div className="rounded-[22px] border border-black/[0.08] bg-white p-5 pt-6 shadow-[0_20px_50px_-16px_rgba(15,23,42,0.2)] sm:p-7">
-          <InvoiceForm
-            mode="create"
-            todayIso={todayIso}
-            defaultDueDate={addDaysIso(todayIso, 7)}
-            defaultCurrency={profile.default_currency}
-            disabled={atFreeLimit}
-          />
-        </div>
-      </DaylightStage>
+      <div className="rounded-[18px] border border-black/[0.07] bg-white p-5 shadow-[0_1px_2px_rgba(19,19,22,0.03),0_10px_28px_-18px_rgba(19,19,22,0.1)] sm:p-6">
+        <InvoiceForm
+          mode="create"
+          todayIso={todayIso}
+          defaultDueDate={addDaysIso(todayIso, 7)}
+          defaultCurrency={profile.default_currency}
+          disabled={atFreeLimit}
+        />
+      </div>
     </div>
   );
 }
@@ -84,9 +80,9 @@ export default function NewInvoicePage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-2xl space-y-4">
-          <div className="h-9 w-48 animate-pulse rounded-xl bg-[#F4F4F5]" />
-          <div className="h-96 animate-pulse rounded-[28px] bg-[#E0F2FE]" />
+        <div className="mx-auto max-w-xl space-y-4">
+          <div className="h-10 w-44 animate-pulse rounded-lg bg-black/[0.06]" />
+          <div className="h-96 animate-pulse rounded-[18px] bg-white" />
         </div>
       }
     >
