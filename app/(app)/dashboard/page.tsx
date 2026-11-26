@@ -125,9 +125,9 @@ async function DashboardContent({
 
   const searchQuery = (queryParam ?? "").trim();
   const activeFilter: InvoiceListFilter = FILTERS.some(
-    (f) => f.key === statusParam
+    (f) => f.key === normalizedStatus
   )
-    ? (statusParam as InvoiceListFilter)
+    ? (normalizedStatus as InvoiceListFilter)
     : "all";
 
   const activeInvoices = invoices.filter(isInvoiceActive);

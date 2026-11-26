@@ -105,7 +105,7 @@ export function CheckoutReturnHandler({
       {passwordReset && (
         <div
           role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm font-medium text-[#14532D]"
+          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
         >
           Your password has been updated.
         </div>
@@ -114,7 +114,7 @@ export function CheckoutReturnHandler({
       {checkoutFailed && (
         <div
           role="alert"
-          className="rounded-2xl border border-[#FDE047] bg-[#FEF9C3] px-5 py-3.5 text-sm text-[#713F12]"
+          className="rounded-[14px] border border-[#FDE68A] bg-[#FFFDF7] px-4 py-3 text-xs text-[#713F12] sm:text-sm"
         >
           Payment didn&apos;t go through. No charge was made—try another
           payment method or retry anytime.
@@ -124,9 +124,9 @@ export function CheckoutReturnHandler({
       {checkoutReturn && !checkoutFailed && !isFree && (
         <div
           role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm text-[#14532D]"
+          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
         >
-          Founding Pass unlocked! Unlimited active invoices and 1-click WhatsApp
+          Founding Pass unlocked! Unlimited active invoices and 1-tap WhatsApp
           nudges are now active.
         </div>
       )}
@@ -134,7 +134,7 @@ export function CheckoutReturnHandler({
       {checkoutReturn && !checkoutFailed && isFree && !pollTimedOut && (
         <div
           role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm text-[#14532D]"
+          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
         >
           {checkoutExplicitSuccess
             ? "Payment received! Confirming your Founding Pass..."
@@ -145,14 +145,14 @@ export function CheckoutReturnHandler({
       {pollTimedOut && (
         <div
           role="status"
-          className="flex flex-col gap-3 rounded-2xl border border-[#FDE047] bg-[#FEF9C3] px-5 py-4 text-sm text-[#713F12] sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[14px] border border-[#FDE68A] bg-[#FFFDF7] px-4 py-3.5 text-xs text-[#713F12] sm:flex-row sm:items-center sm:justify-between sm:text-sm"
         >
           <p>
             Still waiting for payment confirmation. If you cancelled checkout,
             no charge was made; if you completed payment, check again or email{" "}
             <a
               href={`mailto:${supportEmail}`}
-              className="font-semibold text-[#111111] underline"
+              className="font-semibold text-[#131316] underline"
             >
               {supportEmail}
             </a>
@@ -166,7 +166,7 @@ export function CheckoutReturnHandler({
               setAttempts(0);
               router.refresh();
             }}
-            className="shrink-0"
+            className="shrink-0 rounded-[8px]"
           >
             Check status
           </Button>
@@ -176,7 +176,7 @@ export function CheckoutReturnHandler({
       {wantsUpgrade && !checkoutReturn && isFree && upgradeStatus === "starting" && (
         <div
           role="status"
-          className="rounded-2xl border border-black/[0.08] bg-[#FFF1A8] px-5 py-3.5 text-sm font-medium text-[#4B4116]"
+          className="rounded-[14px] border border-black/[0.08] bg-[#FFFDF7] px-4 py-3 text-xs font-medium text-[#131316] sm:text-sm"
         >
           Opening $19 Founding Pass checkout...
         </div>
@@ -185,13 +185,13 @@ export function CheckoutReturnHandler({
       {wantsUpgrade && !checkoutReturn && isFree && upgradeStatus === "error" && (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] px-5 py-4 text-sm text-[#9F1239] sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[14px] border border-[#FECDD3] bg-[#FFF1F2] px-4 py-3.5 text-xs text-[#9F1239] sm:flex-row sm:items-center sm:justify-between sm:text-sm"
         >
           <p>{upgradeError}</p>
           <UpgradeCheckoutButton
             variant="compact"
             label="Retry $19 checkout"
-            className="shrink-0"
+            className="shrink-0 rounded-[8px]"
           />
         </div>
       )}
@@ -199,7 +199,7 @@ export function CheckoutReturnHandler({
       {wantsUpgrade && !checkoutReturn && !isFree && (
         <div
           role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-5 py-3.5 text-sm text-[#14532D]"
+          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
         >
           You already have the Founding Pass unlocked.
         </div>

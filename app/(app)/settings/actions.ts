@@ -55,9 +55,12 @@ export async function updateSettingsAction(
     return { error: error.message || "Could not save settings." };
   }
 
+  revalidatePath("/(app)", "layout");
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/invoices");
   revalidatePath("/invoices/new");
+  revalidatePath("/invoices/[id]", "page");
 
   return { success: "Settings saved." };
 }

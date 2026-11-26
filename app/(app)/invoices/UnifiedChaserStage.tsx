@@ -76,7 +76,10 @@ export function UnifiedChaserStage({
 
   if (steps.length === 0) return null;
 
-  const current = steps[selectedIndex] ?? steps[0];
+  const safeIndex = Math.min(selectedIndex, steps.length - 1);
+  const current = steps[safeIndex] ?? steps[0];
+  const hasLinearRail = steps.length >= 2 && steps.length <= 6;
+  const railInsetPct = hasLinearRail ? 50 / steps.length : 0;
 
   const toneDotClass =
     current.toneLabel === "Final notice"
@@ -134,16 +137,27 @@ export function UnifiedChaserStage({
         <div
           role="tablist"
           aria-label="Reminder cadence steps"
-          className="relative grid grid-cols-3 gap-y-3 sm:grid-cols-6"
+          className={cn(
+            "relative grid grid-cols-3 gap-y-3",
+            steps.length <= 6
+              ? "sm:flex sm:items-start sm:justify-between"
+              : "sm:grid-cols-6"
+          )}
         >
-          {/* Connecting rail on sm+ */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-[8%] right-[8%] top-[13px] hidden h-[1.5px] bg-black/[0.09] sm:block"
-          />
+          {/* Connecting rail on sm+ when all steps fit on a single row */}
+          {hasLinearRail && (
+            <div
+              aria-hidden="true"
+              style={{
+                left: `${railInsetPct}%`,
+                right: `${railInsetPct}%`,
+              }}
+              className="pointer-events-none absolute top-[13px] hidden h-[1.5px] bg-black/[0.09] sm:block"
+            />
+          )}
 
           {steps.map((step, index) => {
-            const selected = index === selectedIndex;
+            const selected = index === safeIndex;
             const stepDot =
               step.toneLabel === "Final notice"
                 ? "bg-[#E11D48]"
@@ -158,7 +172,10 @@ export function UnifiedChaserStage({
                 role="tab"
                 aria-selected={selected}
                 onClick={() => setSelectedIndex(index)}
-                className="group relative z-10 flex flex-col items-center gap-1.5 text-center cursor-pointer focus-visible:outline-none"
+                className={cn(
+                  "group relative z-10 flex flex-col items-center gap-1.5 text-center cursor-pointer focus-visible:outline-none",
+                  steps.length <= 6 && "sm:flex-1"
+                )}
               >
                 <span
                   className={cn(
@@ -288,7 +305,10 @@ export function UnifiedChaserStage({
                   <span className="font-mono text-[#131316]">{userEmail}</span>
                 </span>
               </p>
-              <SendTestEmailButton invoiceId={invoiceId} />
+              <SendTestEmailButton
+                invoiceId={invoiceId}
+                offsetDays={current.offset}
+              />
             </div>
 
             {canSendNow && (

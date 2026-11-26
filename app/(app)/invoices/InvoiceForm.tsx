@@ -159,7 +159,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
           tabIndex={-1}
           role="alert"
           aria-labelledby="invoice-form-error-title"
-          className="rounded-2xl border border-[#FECDD3] bg-[#FFE4E6] p-4 text-sm text-[#9F1239] focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
+          className="rounded-[14px] border border-[#FECDD3] bg-[#FFF1F2] p-4 text-sm text-[#9F1239] focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
         >
           <h3 id="invoice-form-error-title" className="font-semibold">
             {state.error ?? "Please check the fields below:"}
@@ -170,7 +170,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
                 <li key={field}>
                   <a
                     href={`#${FIELD_IDS[field] ?? ""}`}
-                    className="underline hover:text-[#111111]"
+                    className="underline hover:text-[#131316]"
                   >
                     {msg}
                   </a>
@@ -184,7 +184,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
       {state.success && (
         <div
           role="status"
-          className="rounded-2xl border border-[#BBF7D0] bg-[#DCFCE7] px-4 py-3 text-sm font-medium text-[#14532D]"
+          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-sm font-medium text-[#15803D]"
         >
           {state.success}
         </div>
@@ -307,13 +307,17 @@ export function InvoiceForm(props: InvoiceFormProps) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor={FIELD_IDS.currency}>
+            <p
+              id={`${FIELD_IDS.currency}-label`}
+              className="text-sm font-medium text-[#131316]"
+            >
               Currency <span className="text-[#BE123C]">*</span>
-            </Label>
+            </p>
             <div className="mt-1.5">
               <CurrencyPicker
                 id={FIELD_IDS.currency}
                 name="currency"
+                ariaLabelledBy={`${FIELD_IDS.currency}-label`}
                 defaultValue={initialCurrency}
                 disabled={props.disabled}
               />

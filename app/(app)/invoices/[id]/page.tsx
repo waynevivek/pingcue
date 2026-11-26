@@ -356,6 +356,7 @@ async function InvoiceDetailContent({
                 </Label>
                 <div className="flex gap-2">
                   <Input
+                    key={invoice.amount_received_minor}
                     id="quick-amount-received"
                     name="amount_received"
                     type="text"
@@ -448,6 +449,7 @@ async function InvoiceDetailContent({
                 </Label>
                 <div className="flex gap-2">
                   <Input
+                    key={invoice.paused_until ?? "unpaused"}
                     id="quick-paused-until"
                     name="paused_until"
                     type="date"

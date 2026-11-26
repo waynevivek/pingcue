@@ -113,10 +113,11 @@ async function InvoicesListContent({
     : resolvedParams.q;
   const searchQuery = (rawQuery ?? "").trim();
 
+  const normalizedStatus = rawStatus?.toLowerCase();
   const activeFilter: InvoiceListFilter = FILTERS.some(
-    (f) => f.key === rawStatus
+    (f) => f.key === normalizedStatus
   )
-    ? (rawStatus as InvoiceListFilter)
+    ? (normalizedStatus as InvoiceListFilter)
     : "all";
 
   const filterCounts: Record<InvoiceListFilter, number> = {

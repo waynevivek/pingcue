@@ -29,11 +29,15 @@ export function SettingsForm({
   );
 
   const cleanName = displayName.trim();
+  const sanitizedHeaderName = cleanName
+    .replace(/[\r\n\x00-\x1f\x7f"<>\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   const previewSender = cleanName || email;
-  const previewFrom = cleanName
-    ? /via pingcue$/i.test(cleanName)
-      ? cleanName
-      : `${cleanName} via PingCue`
+  const previewFrom = sanitizedHeaderName
+    ? /via pingcue$/i.test(sanitizedHeaderName)
+      ? sanitizedHeaderName
+      : `${sanitizedHeaderName} via PingCue`
     : "PingCue";
 
   return (
@@ -97,16 +101,17 @@ export function SettingsForm({
 
       {/* Apple Segmented Currency Picker */}
       <div>
-        <Label
-          htmlFor="settings-default-currency"
-          className="text-xs text-[#131316]"
+        <p
+          id="settings-default-currency-label"
+          className="text-xs font-medium text-[#131316]"
         >
           Default invoice currency
-        </Label>
+        </p>
         <div className="mt-1.5">
           <CurrencyPicker
             id="settings-default-currency"
             name="default_currency"
+            ariaLabelledBy="settings-default-currency-label"
             defaultValue={initialDefaultCurrency}
           />
         </div>

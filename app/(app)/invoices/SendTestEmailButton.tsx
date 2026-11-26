@@ -6,7 +6,13 @@ import { sendTestEmailAction, type TestEmailState } from "./actions";
 
 const INITIAL_STATE: TestEmailState = {};
 
-export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
+export function SendTestEmailButton({
+  invoiceId,
+  offsetDays,
+}: {
+  invoiceId: string;
+  offsetDays?: number;
+}) {
   const [state, formAction, pending] = useActionState(
     sendTestEmailAction.bind(null, invoiceId),
     INITIAL_STATE
@@ -15,6 +21,9 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
   return (
     <div className="shrink-0 space-y-2">
       <form action={formAction}>
+        {typeof offsetDays === "number" && (
+          <input type="hidden" name="offset_days" value={offsetDays} />
+        )}
         <button
           type="submit"
           disabled={pending}

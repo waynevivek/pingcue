@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils";
 export function CurrencyPicker({
   id,
   name,
+  ariaLabelledBy,
   defaultValue = "INR",
   disabled = false,
   onChange,
 }: {
   id?: string;
   name: string;
+  ariaLabelledBy?: string;
   defaultValue?: Currency;
   disabled?: boolean;
   onChange?: (currency: Currency) => void;
@@ -29,7 +31,8 @@ export function CurrencyPicker({
     <div
       id={id}
       role="radiogroup"
-      aria-label="Currency"
+      aria-labelledby={ariaLabelledBy}
+      aria-label={ariaLabelledBy ? undefined : "Currency"}
       className="grid grid-cols-4 gap-1 rounded-[10px] bg-[#EFEFED] p-[3px]"
     >
       <input type="hidden" name={name} value={selected} />

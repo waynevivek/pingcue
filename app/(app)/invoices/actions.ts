@@ -305,8 +305,8 @@ export type TestEmailState = {
 
 export async function sendTestEmailAction(
   invoiceId: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _prevState: TestEmailState
+  _prevState: TestEmailState,
+  formData?: FormData
 ): Promise<TestEmailState> {
   const { user } = await requireUser();
   if (!user.email) {
@@ -364,11 +364,17 @@ export async function sendTestEmailAction(
   }
 
   const sentOffsets = getSentOffsetsForDueDate(logs, invoice.due_date);
-  const offsetDays = getNextReminderOffset(
-    invoice,
-    sentOffsets,
-    getTodayIsoDate()
-  );
+  const rawRequestedOffset = formData?.get("offset_days");
+  const parsedRequestedOffset =
+    typeof rawRequestedOffset === "string" &&
+    /^[+-]?\d+$/.test(rawRequestedOffset.trim())
+      ? Number.parseInt(rawRequestedOffset.trim(), 10)
+      : null;
+  const offsetDays =
+    parsedRequestedOffset !== null &&
+    invoice.reminder_offsets.includes(parsedRequestedOffset)
+      ? parsedRequestedOffset
+      : getNextReminderOffset(invoice, sentOffsets, getTodayIsoDate());
 
   const email = buildReminderEmail({
     invoice,

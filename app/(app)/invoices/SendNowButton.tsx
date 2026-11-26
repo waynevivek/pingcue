@@ -17,11 +17,13 @@ export function SendNowButton({
   offsetLabel: string;
   toneLabel: string;
 }) {
-  const [confirming, setConfirming] = useState(false);
+  // Tie confirmation to the exact offsetLabel so advancing after a successful send collapses the prompt automatically.
+  const [confirmingFor, setConfirmingFor] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(
     sendReminderNowAction.bind(null, invoiceId),
     INITIAL_STATE
   );
+  const confirming = confirmingFor === offsetLabel;
 
   return (
     <div className="space-y-2 border-t border-black/[0.06] pt-3">
@@ -32,7 +34,7 @@ export function SendNowButton({
           </p>
           <button
             type="button"
-            onClick={() => setConfirming(true)}
+            onClick={() => setConfirmingFor(offsetLabel)}
             className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-[#131316] bg-[#131316] px-3 text-xs font-medium text-white shadow-[0_1px_2px_rgba(19,19,22,0.16),inset_0_1px_0_rgba(255,255,255,0.14)] transition-colors hover:bg-[#26262B] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#131316]"
           >
             <Send className="h-3 w-3" aria-hidden="true" />
@@ -62,7 +64,7 @@ export function SendNowButton({
             <button
               type="button"
               disabled={pending}
-              onClick={() => setConfirming(false)}
+              onClick={() => setConfirmingFor(null)}
               className="inline-flex h-7 items-center rounded-[7px] border border-black/10 bg-white px-3 text-xs font-medium text-[#131316] hover:bg-[#F5F5F3] cursor-pointer disabled:opacity-60"
             >
               Cancel

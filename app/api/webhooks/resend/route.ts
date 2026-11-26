@@ -179,17 +179,18 @@ export async function POST(request: Request) {
             const invoice = invoiceRes.data;
             const profile = profileRes.data;
             const freelancerEmail = profile?.email?.trim().toLowerCase() ?? "";
-            const affectedEmail = (
-              invoice?.client_email ||
+            const bouncedAddress = (
               logRow.recipient_email ||
-              recipients[0]
-            )
-              .trim()
-              .toLowerCase();
+              recipients[0] ||
+              invoice?.client_email ||
+              ""
+            ).trim();
+            const affectedEmail = bouncedAddress.toLowerCase();
 
             // Guard against bounce loops if freelancer email matches the suppressed address.
             if (
               invoice &&
+              bouncedAddress &&
               freelancerEmail &&
               freelancerEmail !== affectedEmail &&
               !recipients.includes(freelancerEmail)
@@ -204,7 +205,7 @@ export async function POST(request: Request) {
                 const alert = buildDeliveryIssueAlertEmail({
                   freelancerName: profile?.display_name ?? null,
                   clientName: invoice.client_name,
-                  clientEmail: invoice.client_email,
+                  clientEmail: bouncedAddress,
                   invoiceTitle: invoice.title,
                   invoiceId: invoice.id,
                   reason: suppressionReason,
