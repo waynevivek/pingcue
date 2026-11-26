@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowLeft,
+  Calendar,
   CheckCircle2,
   ExternalLink,
   Mail,
@@ -236,19 +237,19 @@ async function InvoiceDetailContent({
       )}
 
       {/* Signature Tactile Balance Hero Card (Butter when active, Mint when settled) */}
-      <div className="relative pt-7">
+      <div className="relative pt-8">
         <PerchedPingMascot
           sleeping={paused || !active}
-          className="absolute left-5 top-0 z-10 h-[48px] w-[76px] sm:left-6"
+          className="absolute -top-0.5 left-5 z-10 h-[48px] w-[76px] sm:left-6"
         />
 
         <div
-          className={`rounded-[26px] border border-black/[0.08] p-5 shadow-[0_12px_36px_-22px_rgba(15,23,42,0.18)] sm:p-6 ${
+          className={`rounded-[26px] border border-black/[0.08] p-5 pt-7 shadow-[0_12px_36px_-22px_rgba(15,23,42,0.18)] sm:p-6 sm:pt-7 ${
             active ? "bg-[#FFF1A8]" : "bg-[#DCFCE7]"
           }`}
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0 space-y-2">
+            <div className="min-w-0 space-y-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[28px]">
                   {invoice.title}
@@ -257,29 +258,29 @@ async function InvoiceDetailContent({
               </div>
 
               <div
-                className={`flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-medium ${
+                className={`space-y-1.5 text-xs font-medium ${
                   active ? "text-[#4B4116]" : "text-[#14532D]"
                 }`}
               >
-                <span className="font-semibold text-[#111111]">
-                  {invoice.client_name}
-                </span>
-                <span aria-hidden="true">·</span>
-                <span className="break-words">
-                  {invoice.client_email}
-                </span>
-                {invoice.client_whatsapp && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="font-mono">
-                      WA {invoice.client_whatsapp}
+                <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="font-semibold text-[#111111]">
+                    {invoice.client_name}
+                  </span>
+                  <span className="break-words">{invoice.client_email}</span>
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/65 px-2.5 py-0.5 font-medium text-[#111111] tabular-nums">
+                    <Calendar className="h-3 w-3 text-[#52525B]" aria-hidden="true" />
+                    <span>Due {formatShortDate(invoice.due_date)}</span>
+                  </span>
+                  {invoice.client_whatsapp && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/65 px-2.5 py-0.5 font-mono text-[11px] font-medium text-[#111111]">
+                      <MessageSquare className="h-3 w-3 text-[#15803D]" aria-hidden="true" />
+                      <span>{invoice.client_whatsapp}</span>
                     </span>
-                  </>
-                )}
-                <span aria-hidden="true">·</span>
-                <span className="tabular-nums">
-                  Due {formatShortDate(invoice.due_date)}
-                </span>
+                  )}
+                </div>
               </div>
             </div>
 

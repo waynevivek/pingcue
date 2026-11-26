@@ -143,9 +143,15 @@ async function DashboardContent({
     .slice(0, 3);
 
   const singleCurrency = currencyTotals.length === 1;
+  const queueGridClass =
+    upcomingQueue.length === 1
+      ? "grid grid-cols-1"
+      : upcomingQueue.length === 2
+        ? "grid gap-2.5 sm:grid-cols-2"
+        : "grid gap-2.5 sm:grid-cols-3";
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-5 md:space-y-7">
       <CheckoutReturnHandler
         isFree={isFree}
         checkoutReturn={checkoutReturn}
@@ -156,30 +162,21 @@ async function DashboardContent({
         supportEmail={SUPPORT_EMAIL}
       />
 
-      {/* Page Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="font-sans text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[32px]">
-              {greetingName ? `Hey ${greetingName}` : "Dashboard"}
-            </h1>
-            <Badge variant={isFree ? "neutral" : "paid"}>
-              {isFree
-                ? `Free · ${Math.min(activeInvoices.length, 1)}/1 active`
-                : "Founding Pass"}
-            </Badge>
-          </div>
-          <p className="mt-1 text-sm text-[#52525B]">
-            Balances grouped by currency and your upcoming automated pings.
-          </p>
+      {/* Page Header (no duplicate desktop CTA or duplicate plan badge) */}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="font-sans text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[32px]">
+            {greetingName ? `Hey ${greetingName}` : "Dashboard"}
+          </h1>
+          <Badge variant={isFree ? "neutral" : "paid"} className="md:hidden">
+            {isFree
+              ? `Free · ${Math.min(activeInvoices.length, 1)}/1 active`
+              : "Founding Pass"}
+          </Badge>
         </div>
-
-        <Button asChild className="hidden md:inline-flex">
-          <Link href="/invoices/new">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            <span>New invoice</span>
-          </Link>
-        </Button>
+        <p className="mt-1 text-sm text-[#52525B]">
+          Balances by currency and upcoming automated pings.
+        </p>
       </div>
 
       {/* Free Plan Upgrade Strip */}
@@ -202,14 +199,14 @@ async function DashboardContent({
         </div>
       )}
 
-      {/* Empty State vs Cashflow & Queue */}
+      {/* Empty State vs Cashflow */}
       {currencyTotals.length === 0 ? (
         <div className="relative pt-8">
           <PerchedPingMascot
             sleeping={false}
             className="absolute left-6 top-0 z-10 h-[52px] w-[82px]"
           />
-          <Card className="overflow-hidden p-6 text-center sm:p-10">
+          <Card className="overflow-hidden p-6 pt-8 text-center sm:p-10">
             <div className="mx-auto mb-3 flex justify-center">
               <InlineEnvelopeSticker className="h-11 w-auto -rotate-[5deg]" />
             </div>
@@ -223,9 +220,18 @@ async function DashboardContent({
 
             <div className="mx-auto mt-6 grid max-w-lg grid-cols-1 gap-2.5 text-left sm:grid-cols-3">
               {[
-                { label: "Log link & due date", tint: "bg-[#FFF1A8] text-[#4B4116]" },
-                { label: "Preview tone first", tint: "bg-[#D9E6FF] text-[#1E335C]" },
-                { label: "Auto-stops when paid", tint: "bg-[#D6F7A3] text-[#1A2E05]" },
+                {
+                  label: "Log link & due date",
+                  tint: "bg-[#FFF1A8] text-[#4B4116]",
+                },
+                {
+                  label: "Preview tone first",
+                  tint: "bg-[#D9E6FF] text-[#1E335C]",
+                },
+                {
+                  label: "Auto-stops when paid",
+                  tint: "bg-[#D6F7A3] text-[#1A2E05]",
+                },
               ].map((step) => (
                 <div
                   key={step.label}
@@ -247,14 +253,16 @@ async function DashboardContent({
           </Card>
         </div>
       ) : (
-        <section aria-label="Cashflow by currency" className="space-y-3.5">
+        <section aria-label="Cashflow by currency" className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-[#111111]">
               Cashflow
             </h2>
-            <span className="text-xs font-medium text-[#52525B]">
-              Grouped by currency · No FX conversion
-            </span>
+            {!singleCurrency && (
+              <span className="text-xs font-medium text-[#52525B]">
+                Separate totals · No FX
+              </span>
+            )}
           </div>
 
           <div
@@ -263,6 +271,10 @@ async function DashboardContent({
             }
           >
             {currencyTotals.map((bucket) => {
+              const upcomingMinor = Math.max(
+                0,
+                bucket.owedMinor - bucket.overdueMinor
+              );
               const totalBilled = bucket.collectedMinor + bucket.owedMinor;
               const collectedPct =
                 totalBilled > 0
@@ -272,12 +284,16 @@ async function DashboardContent({
                 totalBilled > 0
                   ? Math.round((bucket.overdueMinor / totalBilled) * 100)
                   : 0;
+              const upcomingPct =
+                totalBilled > 0
+                  ? Math.max(0, 100 - collectedPct - overduePct)
+                  : 0;
               const symbol = CURRENCY_SYMBOLS[bucket.currency];
 
               return (
                 <Card
                   key={bucket.currency}
-                  className="overflow-hidden p-5 sm:p-6"
+                  className="overflow-hidden p-4 sm:p-6"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-[#111111] px-3 py-1 font-sans text-xs font-semibold text-white shadow-[0_2px_0_rgba(17,17,17,0.2)]">
@@ -295,27 +311,26 @@ async function DashboardContent({
                     </div>
                   </div>
 
-                  {/* Hero Remaining + Collection Progress Bar */}
                   <div
                     className={
                       singleCurrency
-                        ? "mt-5 grid gap-5 md:grid-cols-12 md:items-end"
-                        : "mt-4 space-y-4"
+                        ? "mt-4 grid gap-4 md:grid-cols-12 md:items-end md:gap-5"
+                        : "mt-4 space-y-3.5"
                     }
                   >
                     <div className={singleCurrency ? "md:col-span-5" : ""}>
                       <p className="text-xs font-medium text-[#52525B]">
                         Outstanding balance
                       </p>
-                      <p className="mt-1 font-mono text-[28px] font-semibold leading-none tracking-[-0.03em] text-[#111111] tabular-nums sm:text-[32px]">
+                      <p className="mt-1 font-mono text-[26px] font-semibold leading-none tracking-[-0.03em] text-[#111111] tabular-nums sm:text-[32px]">
                         {formatMoney(bucket.owedMinor, bucket.currency)}
                       </p>
 
-                      {/* Proportional Collection Track */}
-                      <div className="mt-4 space-y-1.5">
+                      {/* 3-Segment Proportional Cashflow Track */}
+                      <div className="mt-3.5 space-y-1.5">
                         <div
                           aria-hidden="true"
-                          className="flex h-2.5 w-full overflow-hidden rounded-full bg-[#EFEFF1]"
+                          className="flex h-2.5 w-full overflow-hidden rounded-full bg-[#F4F4F5]"
                         >
                           {collectedPct > 0 && (
                             <div
@@ -329,6 +344,12 @@ async function DashboardContent({
                               className="h-full bg-[#FB7185] transition-all duration-300"
                             />
                           )}
+                          {upcomingPct > 0 && (
+                            <div
+                              style={{ width: `${upcomingPct}%` }}
+                              className="h-full bg-[#D4D4D8] transition-all duration-300"
+                            />
+                          )}
                         </div>
                         <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-[#52525B] tabular-nums">
                           <span>{collectedPct}% collected</span>
@@ -339,36 +360,45 @@ async function DashboardContent({
                       </div>
                     </div>
 
-                    {/* 3-Stat Breakdown */}
+                    {/* Color-Keyed 3-Stat Breakdown */}
                     <div
                       className={
                         singleCurrency
-                          ? "grid grid-cols-3 gap-2.5 rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5 md:col-span-7 sm:p-4"
-                          : "grid grid-cols-3 gap-2 rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5"
+                          ? "grid grid-cols-3 gap-2.5 rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3 md:col-span-7 sm:p-4"
+                          : "grid grid-cols-3 gap-2 rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3"
                       }
                     >
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium text-[#52525B]">
-                          Upcoming
+                        <p className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#52525B]">
+                          <span
+                            aria-hidden="true"
+                            className="h-2 w-2 shrink-0 rounded-full bg-[#A1A1AA]"
+                          />
+                          <span>Upcoming</span>
                         </p>
                         <p className="mt-1 truncate font-mono text-sm font-semibold text-[#111111] tabular-nums sm:text-base">
-                          {formatMoney(
-                            Math.max(0, bucket.owedMinor - bucket.overdueMinor),
-                            bucket.currency
-                          )}
+                          {formatMoney(upcomingMinor, bucket.currency)}
                         </p>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium text-[#BE123C]">
-                          Overdue
+                        <p className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#BE123C]">
+                          <span
+                            aria-hidden="true"
+                            className="h-2 w-2 shrink-0 rounded-full bg-[#FB7185]"
+                          />
+                          <span>Overdue</span>
                         </p>
                         <p className="mt-1 truncate font-mono text-sm font-semibold text-[#BE123C] tabular-nums sm:text-base">
                           {formatMoney(bucket.overdueMinor, bucket.currency)}
                         </p>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium text-[#15803D]">
-                          Collected
+                        <p className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#15803D]">
+                          <span
+                            aria-hidden="true"
+                            className="h-2 w-2 shrink-0 rounded-full bg-[#22C55E]"
+                          />
+                          <span>Collected</span>
                         </p>
                         <p className="mt-1 truncate font-mono text-sm font-semibold text-[#15803D] tabular-nums sm:text-base">
                           {formatMoney(bucket.collectedMinor, bucket.currency)}
@@ -383,40 +413,51 @@ async function DashboardContent({
         </section>
       )}
 
-      {/* Upcoming Automated Pings Strip */}
+      {/* Count-Aware Upcoming Automated Pings Strip */}
       {upcomingQueue.length > 0 && (
         <section
           aria-label="Upcoming automated reminders"
           className="rounded-[24px] border border-black/[0.07] bg-[#E8FACB] p-4 sm:p-5"
         >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-black/10 bg-white text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.08)]">
-                <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.08)]">
+                <CalendarClock className="h-4 w-4" aria-hidden="true" />
               </span>
-              <h2 className="text-sm font-semibold text-[#111111]">
-                Next scheduled pings
-              </h2>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold leading-tight text-[#111111]">
+                  Next scheduled pings
+                </h2>
+                <p className="mt-0.5 text-[11px] font-medium text-[#28420C] tabular-nums sm:hidden">
+                  Daily dispatch · 09:30 IST
+                </p>
+              </div>
             </div>
-            <span className="text-[11px] font-semibold text-[#28420C] tabular-nums">
+            <span className="hidden shrink-0 rounded-full bg-white/75 px-2.5 py-1 text-[11px] font-semibold text-[#28420C] tabular-nums sm:inline-flex">
               Daily dispatch · 09:30 IST
             </span>
           </div>
 
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className={`mt-3 ${queueGridClass}`}>
             {upcomingQueue.map(({ invoice, step }) => {
               const remaining = getRemainingMinor(
                 invoice.amount_minor,
                 invoice.amount_received_minor
               );
+              const singleItem = upcomingQueue.length === 1;
+
               return (
                 <Link
                   key={invoice.id}
                   href={`/invoices/${invoice.id}`}
-                  className="group flex min-w-0 items-center justify-between gap-2.5 rounded-2xl border border-black/[0.08] bg-white px-3.5 py-2.5 shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                  className={
+                    singleItem
+                      ? "group flex min-w-0 flex-col gap-2 rounded-2xl border border-black/[0.08] bg-white px-4 py-3 shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:border-black/20 active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:flex-row sm:items-center sm:justify-between"
+                      : "group flex min-w-0 items-center justify-between gap-2.5 rounded-2xl border border-black/[0.08] bg-white px-3.5 py-2.5 shadow-[0_2px_0_rgba(17,17,17,0.06)] transition-all duration-150 hover:-translate-y-0.5 hover:border-black/20 active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                  }
                 >
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tabular-nums ${getNextStepToneClasses(step.offsetDays, step.isDueNow)}`}
                       >
@@ -424,18 +465,46 @@ async function DashboardContent({
                           ? `Due now · ${formatOffsetBadge(step.offsetDays)}`
                           : `${formatOffsetBadge(step.offsetDays)} · ${formatShortDate(step.scheduledDate)}`}
                       </span>
+                      {singleItem && (
+                        <span className="text-xs font-semibold text-[#111111]">
+                          {invoice.client_name}
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-1 truncate text-xs font-semibold text-[#111111]">
-                      {invoice.client_name}
-                    </p>
-                    <p className="truncate font-mono text-[11px] text-[#52525B] tabular-nums">
-                      {formatMoney(remaining, invoice.currency)} · {invoice.title}
+                    {!singleItem && (
+                      <p className="mt-1 truncate text-xs font-semibold text-[#111111]">
+                        {invoice.client_name}
+                      </p>
+                    )}
+                    <p
+                      className={
+                        singleItem
+                          ? "mt-1 text-xs text-[#52525B] sm:mt-1.5"
+                          : "truncate font-mono text-[11px] text-[#52525B] tabular-nums"
+                      }
+                    >
+                      {singleItem ? (
+                        invoice.title
+                      ) : (
+                        <>
+                          {formatMoney(remaining, invoice.currency)} ·{" "}
+                          {invoice.title}
+                        </>
+                      )}
                     </p>
                   </div>
-                  <ChevronRight
-                    className="h-4 w-4 shrink-0 text-[#71717A] transition-transform group-hover:translate-x-0.5 group-hover:text-[#111111]"
-                    aria-hidden="true"
-                  />
+
+                  <div className="flex shrink-0 items-center justify-between gap-2.5 sm:justify-end">
+                    {singleItem && (
+                      <span className="font-mono text-sm font-semibold text-[#111111] tabular-nums">
+                        {formatMoney(remaining, invoice.currency)}
+                      </span>
+                    )}
+                    <ChevronRight
+                      className="h-4 w-4 shrink-0 text-[#71717A] transition-transform group-hover:translate-x-0.5 group-hover:text-[#111111]"
+                      aria-hidden="true"
+                    />
+                  </div>
                 </Link>
               );
             })}
@@ -486,11 +555,11 @@ async function DashboardContent({
                   <Link
                     key={invoice.id}
                     href={`/invoices/${invoice.id}`}
-                    className="group flex flex-col gap-3 p-4 transition-colors hover:bg-[#FAFAFA] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4"
+                    className="group flex flex-col gap-3 p-4 transition-all duration-150 hover:bg-[#FAFAFA] active:scale-[0.995] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4"
                   >
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate font-semibold text-[#111111]">
+                        <span className="line-clamp-2 font-semibold text-[#111111] sm:line-clamp-1">
                           {invoice.title}
                         </span>
                         <InvoiceStatusBadges
@@ -499,36 +568,29 @@ async function DashboardContent({
                         />
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#52525B]">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#52525B]">
                         <span className="font-medium text-[#27272A]">
                           {invoice.client_name}
                         </span>
-                        <span aria-hidden="true">·</span>
                         <span className="tabular-nums">
                           Due {formatShortDate(invoice.due_date)}
                         </span>
                         {nextStep?.kind === "scheduled" && (
-                          <>
-                            <span aria-hidden="true">·</span>
-                            <span className="inline-flex items-center gap-1 font-medium text-[#111111] tabular-nums">
-                              <CalendarClock
-                                className="h-3 w-3 text-[#52525B]"
-                                aria-hidden="true"
-                              />
-                              {nextStep.isDueNow
-                                ? `Ping due (${formatOffsetBadge(nextStep.offsetDays)})`
-                                : `Next ${formatOffsetBadge(nextStep.offsetDays)} on ${formatShortDate(nextStep.scheduledDate)}`}
-                            </span>
-                          </>
+                          <span className="inline-flex items-center gap-1 font-medium text-[#111111] tabular-nums">
+                            <CalendarClock
+                              className="h-3 w-3 text-[#52525B]"
+                              aria-hidden="true"
+                            />
+                            {nextStep.isDueNow
+                              ? `Ping due (${formatOffsetBadge(nextStep.offsetDays)})`
+                              : `Next ${formatOffsetBadge(nextStep.offsetDays)} · ${formatShortDate(nextStep.scheduledDate)}`}
+                          </span>
                         )}
                         {nextStep?.kind === "paused" && (
-                          <>
-                            <span aria-hidden="true">·</span>
-                            <span className="inline-flex items-center gap-1 font-medium text-[#1E3A8A]">
-                              <Pause className="h-3 w-3" aria-hidden="true" />
-                              Paused
-                            </span>
-                          </>
+                          <span className="inline-flex items-center gap-1 font-medium text-[#1E3A8A]">
+                            <Pause className="h-3 w-3" aria-hidden="true" />
+                            Paused
+                          </span>
                         )}
                         {invoice.client_whatsapp && (
                           <span

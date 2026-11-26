@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { FileText, LayoutDashboard, LogOut, Plus, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
 import { signOutAction } from "@/app/login/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getUserProfile, requireUser } from "@/lib/db";
-import { AppNav, MobileBottomNav } from "./AppNav";
+import { AppNav, MobileBottomNav, NewInvoiceHeaderButton } from "./AppNav";
 
 async function UserNavStatus() {
   const { user } = await requireUser();
@@ -14,23 +14,24 @@ async function UserNavStatus() {
   const isPass = profile.plan === "founding_pass";
 
   return (
-    <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+    <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
       <Badge
         variant={isPass ? "paid" : "neutral"}
         className="hidden md:inline-flex"
       >
         {isPass ? "Founding Pass" : "Free plan"}
       </Badge>
-      <span className="hidden max-w-[170px] truncate text-xs text-[#52525B] lg:inline">
-        {profile.display_name || profile.email || user.email}
-      </span>
 
-      <Button asChild size="sm" className="h-9 px-3.5 text-xs md:hidden">
-        <Link href="/invoices/new">
-          <Plus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
-          <span>New</span>
-        </Link>
-      </Button>
+      <Suspense
+        fallback={
+          <div
+            aria-hidden="true"
+            className="h-9 w-16 animate-pulse rounded-full bg-[#F4F4F5] md:w-28"
+          />
+        }
+      >
+        <NewInvoiceHeaderButton />
+      </Suspense>
 
       <form action={signOutAction}>
         <Button
@@ -47,7 +48,7 @@ async function UserNavStatus() {
           type="submit"
           variant="outline"
           size="sm"
-          className="hidden md:inline-flex"
+          className="hidden h-9 md:inline-flex"
         >
           Sign out
         </Button>
@@ -61,34 +62,26 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen flex-col bg-[#F7F7F5] text-[#111111]">
       <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6 md:py-3 lg:px-8">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
-            >
-              <BrandMark size="sm" />
-            </Link>
+          <Link
+            href="/dashboard"
+            className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2"
+          >
+            <BrandMark size="sm" />
+          </Link>
 
-            <nav aria-label="App navigation" className="hidden items-center gap-3 md:flex">
-              <Suspense
-                fallback={
-                  <div className="hidden items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/90 p-1 text-[13px] font-medium text-[#52525B] md:flex">
-                    <span className="rounded-full px-3.5 py-1.5">Dashboard</span>
-                    <span className="rounded-full px-3.5 py-1.5">Invoices</span>
-                    <span className="rounded-full px-3.5 py-1.5">Settings</span>
-                  </div>
-                }
-              >
-                <AppNav />
-              </Suspense>
-              <Button asChild size="sm" className="h-9 px-3.5 text-xs">
-                <Link href="/invoices/new">
-                  <Plus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
-                  <span>New invoice</span>
-                </Link>
-              </Button>
-            </nav>
-          </div>
+          <nav aria-label="App navigation" className="hidden items-center md:flex">
+            <Suspense
+              fallback={
+                <div className="hidden items-center gap-0.5 rounded-full border border-black/[0.07] bg-[#F4F4F5]/90 p-1 text-[13px] font-medium text-[#52525B] md:flex">
+                  <span className="rounded-full px-3.5 py-1.5">Dashboard</span>
+                  <span className="rounded-full px-3.5 py-1.5">Invoices</span>
+                  <span className="rounded-full px-3.5 py-1.5">Settings</span>
+                </div>
+              }
+            >
+              <AppNav />
+            </Suspense>
+          </nav>
 
           <Suspense
             fallback={

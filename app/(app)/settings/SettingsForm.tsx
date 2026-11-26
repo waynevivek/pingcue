@@ -64,20 +64,20 @@ export function SettingsForm({
             maxLength={80}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="e.g. Vivek Sharma or Northstar Studio"
+            placeholder="e.g. Vivek Sharma or Northstar"
             className="mt-1.5"
           />
         </div>
 
-        <div className="rounded-2xl border border-black/[0.07] bg-[#FAFAFA] p-3.5">
+        <div className="rounded-2xl border border-black/[0.07] bg-[#F7F7F5] px-4 py-3.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#52525B]">
             <Mail className="h-3.5 w-3.5 text-[#111111]" aria-hidden="true" />
             <span>Live email sign-off preview</span>
           </div>
-          <div className="mt-2 rounded-xl border border-black/[0.06] bg-white px-3.5 py-2.5 text-xs leading-relaxed text-[#3F3F46]">
+          <div className="mt-2.5 border-t border-black/[0.06] pt-2.5 text-xs leading-relaxed text-[#3F3F46]">
             <p>Thanks,</p>
             <p className="font-semibold text-[#111111]">{previewSender}</p>
-            <p className="mt-1.5 truncate font-mono text-[11px] text-[#71717A]">
+            <p className="mt-1.5 break-words font-mono text-[11px] text-[#71717A]">
               Reply-To: {email}
             </p>
           </div>

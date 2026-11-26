@@ -16,7 +16,7 @@ export function SendTestEmailButton({ invoiceId }: { invoiceId: string }) {
   return (
     <div className="space-y-3">
       <form action={formAction}>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
           <Mail className="h-4 w-4" aria-hidden="true" />
           <span>{pending ? "Sending test email..." : "Send test email to me"}</span>
         </Button>

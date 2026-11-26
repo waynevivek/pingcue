@@ -51,7 +51,7 @@ export function InlineEmailPreview({
 
   return (
     <div className="space-y-4">
-      {/* Mint-Lime Tactile Keycap Timeline (matching landing cadence signature) */}
+      {/* Mint-Lime Tactile Keycap Timeline */}
       <div className="rounded-[20px] border border-black/[0.06] bg-[#D6F7A3] p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="font-semibold tracking-[-0.01em] text-[#111111]">
@@ -126,27 +126,36 @@ export function InlineEmailPreview({
         </p>
       </div>
 
-      {/* Live Email Dispatch Sheet */}
-      <div className="rounded-[20px] border border-black/[0.07] bg-[#FAFAFA] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-2.5 text-[11px] text-[#52525B]">
-          <span className="min-w-0 max-w-full truncate font-mono">
-            To: {clientEmail} · Reply-To: {replyTo}
-          </span>
-          <Badge variant={toneBadgeVariant} className="px-2 py-0 text-[10px]">
+      {/* Flattened Single-Surface Email Sheet (no nested cards) */}
+      <div className="rounded-[20px] border border-black/[0.08] bg-[#FAFAFA] p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-black/[0.07] pb-3">
+          <div className="min-w-0 space-y-0.5 font-mono text-[11px] text-[#52525B]">
+            <p className="break-words">
+              <span className="font-sans font-semibold text-[#111111]">
+                To:
+              </span>{" "}
+              {clientEmail}
+            </p>
+            <p className="break-words">
+              <span className="font-sans font-semibold text-[#111111]">
+                Reply-To:
+              </span>{" "}
+              {replyTo}
+            </p>
+          </div>
+          <Badge variant={toneBadgeVariant} className="shrink-0 px-2.5 py-0.5 text-[10px]">
             {activeStep.wasSent ? "Sent" : activeStep.toneLabel} ·{" "}
             {activeStep.scheduledDate}
           </Badge>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
-          <p className="text-xs font-semibold text-[#111111] sm:text-[13px]">
-            Subject: {activeStep.subject}
-          </p>
+        <p className="mt-3.5 text-[13px] font-semibold leading-snug text-[#111111]">
+          Subject: {activeStep.subject}
+        </p>
 
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-xs leading-relaxed text-[#3F3F46] sm:text-[13px]">
-            {activeStep.text}
-          </pre>
-        </div>
+        <pre className="mt-2.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-[#3F3F46]">
+          {activeStep.text}
+        </pre>
       </div>
     </div>
   );

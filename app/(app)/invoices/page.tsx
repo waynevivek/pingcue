@@ -7,7 +7,6 @@ import {
   ChevronRight,
   MessageSquare,
   Pause,
-  Plus,
   Search,
   X,
 } from "lucide-react";
@@ -133,22 +132,13 @@ async function InvoicesListContent({
   return (
     <div className="space-y-5 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-sans text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[32px]">
-            Invoices
-          </h1>
-          <p className="mt-1 text-sm text-[#52525B]">
-            Track balances, pause schedules, and send email or WhatsApp nudges.
-          </p>
-        </div>
-
-        <Button asChild className="hidden md:inline-flex">
-          <Link href="/invoices/new">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            <span>New invoice</span>
-          </Link>
-        </Button>
+      <div className="min-w-0">
+        <h1 className="font-sans text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[32px]">
+          Invoices
+        </h1>
+        <p className="mt-1 text-sm text-[#52525B]">
+          Track balances, pause schedules, and send email or WhatsApp nudges.
+        </p>
       </div>
 
       {/* Filter Pills with Counts + Search */}
@@ -267,14 +257,14 @@ async function InvoicesListContent({
                 <Link
                   key={invoice.id}
                   href={`/invoices/${invoice.id}`}
-                  className="block space-y-3 p-4 transition-colors active:bg-[#FAFAFA]"
+                  className="block space-y-3 p-4 transition-all duration-150 active:scale-[0.995] active:bg-[#FAFAFA]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-[#111111]">
+                      <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#111111]">
                         {invoice.title}
                       </p>
-                      <p className="mt-0.5 truncate text-xs text-[#52525B]">
+                      <p className="mt-1 truncate text-xs text-[#52525B]">
                         {invoice.client_name} · Due{" "}
                         {formatShortDate(invoice.due_date)}
                       </p>

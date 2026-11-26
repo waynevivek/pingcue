@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, LayoutDashboard, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, Plus, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -38,6 +39,24 @@ export function AppNav() {
         );
       })}
     </div>
+  );
+}
+
+export function NewInvoiceHeaderButton() {
+  const pathname = usePathname();
+
+  if (pathname === "/invoices/new") {
+    return null;
+  }
+
+  return (
+    <Button asChild size="sm" className="h-9 px-3.5 text-xs">
+      <Link href="/invoices/new">
+        <Plus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
+        <span className="md:hidden">New</span>
+        <span className="hidden md:inline">New invoice</span>
+      </Link>
+    </Button>
   );
 }
 
