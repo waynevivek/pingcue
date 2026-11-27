@@ -8,7 +8,7 @@ create table if not exists public.profiles (
   plan text not null default 'free' check (plan in ('free', 'founding_pass')),
   founding_pass_unlocked_at timestamptz,
   display_name text,
-  default_currency text not null default 'INR' check (default_currency in ('INR', 'USD', 'EUR', 'GBP')),
+  default_currency text not null default 'USD' check (default_currency in ('USD', 'EUR', 'GBP', 'INR')),
   notify_on_send boolean not null default true,
   dodo_payment_id text,
   dodo_customer_id text,

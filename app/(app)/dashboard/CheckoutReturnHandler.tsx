@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
 import { Button } from "@/components/ui/button";
 
@@ -27,11 +27,15 @@ export function CheckoutReturnHandler({
 }) {
   const router = useRouter();
   const [attempts, setAttempts] = useState(0);
-  const [upgradeStatus, setUpgradeStatus] = useState<
-    "idle" | "starting" | "error"
-  >(wantsUpgrade && isFree && !checkoutReturn ? "starting" : "idle");
-  const [upgradeError, setUpgradeError] = useState("");
-  const upgradeStartedRef = useRef(false);
+  const [prevWantsUpgrade, setPrevWantsUpgrade] = useState(wantsUpgrade);
+  const [upgradeError, setUpgradeError] = useState<string | null>(null);
+
+  if (wantsUpgrade !== prevWantsUpgrade) {
+    setPrevWantsUpgrade(wantsUpgrade);
+    if (upgradeError !== null) {
+      setUpgradeError(null);
+    }
+  }
 
   const shouldPoll =
     checkoutReturn && !checkoutFailed && isFree && attempts < MAX_POLL_ATTEMPTS;
@@ -47,30 +51,26 @@ export function CheckoutReturnHandler({
   }, [shouldPoll, attempts, router]);
 
   useEffect(() => {
-    if (
-      !wantsUpgrade ||
-      !isFree ||
-      checkoutReturn ||
-      upgradeStartedRef.current
-    ) {
+    if (!wantsUpgrade || !isFree || checkoutReturn) {
       return;
     }
 
-    upgradeStartedRef.current = true;
-    let active = true;
+    const controller = new AbortController();
 
     async function resumeCheckout() {
       try {
-        const response = await fetch("/api/checkout", { method: "POST" });
+        const response = await fetch("/api/checkout", {
+          method: "POST",
+          signal: controller.signal,
+        });
         const data = (await response.json().catch(() => ({}))) as {
           checkoutUrl?: string;
           error?: string;
         };
 
-        if (!active) return;
+        if (controller.signal.aborted) return;
 
         if (!response.ok || !data.checkoutUrl) {
-          setUpgradeStatus("error");
           setUpgradeError(
             data.error ?? "Could not start checkout. Please try again."
           );
@@ -83,9 +83,13 @@ export function CheckoutReturnHandler({
         }
 
         window.location.assign(data.checkoutUrl);
-      } catch {
-        if (!active) return;
-        setUpgradeStatus("error");
+      } catch (err) {
+        if (
+          controller.signal.aborted ||
+          (err instanceof DOMException && err.name === "AbortError")
+        ) {
+          return;
+        }
         setUpgradeError("Network error starting checkout.");
       }
     }
@@ -93,19 +97,24 @@ export function CheckoutReturnHandler({
     resumeCheckout();
 
     return () => {
-      active = false;
+      controller.abort();
     };
   }, [wantsUpgrade, isFree, checkoutReturn, router]);
 
   const pollTimedOut =
     checkoutReturn && !checkoutFailed && isFree && attempts >= MAX_POLL_ATTEMPTS;
+  const upgradeStatus = !wantsUpgrade || !isFree || checkoutReturn
+    ? "idle"
+    : upgradeError
+      ? "error"
+      : "starting";
 
   return (
     <>
       {passwordReset && (
         <div
           role="status"
-          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
+          className="rounded-[12px] border border-[#BBF7D0] bg-[#F2FDF5] px-4 py-3 text-xs font-medium text-[#14532D] sm:text-[13px]"
         >
           Your password has been updated.
         </div>
@@ -114,7 +123,7 @@ export function CheckoutReturnHandler({
       {checkoutFailed && (
         <div
           role="alert"
-          className="rounded-[14px] border border-[#FDE68A] bg-[#FFFDF7] px-4 py-3 text-xs text-[#713F12] sm:text-sm"
+          className="rounded-[12px] border border-[#FDE68A] bg-[#FEFDF0] px-4 py-3 text-xs text-[#713F12] sm:text-[13px]"
         >
           Payment didn&apos;t go through. No charge was made—try another
           payment method or retry anytime.
@@ -124,7 +133,7 @@ export function CheckoutReturnHandler({
       {checkoutReturn && !checkoutFailed && !isFree && (
         <div
           role="status"
-          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
+          className="rounded-[12px] border border-[#BFE883] bg-[#F4FCE6] px-4 py-3 text-xs font-medium text-[#1A2E05] sm:text-[13px]"
         >
           Founding Pass unlocked! Unlimited active invoices and 1-tap WhatsApp
           nudges are now active.
@@ -134,7 +143,7 @@ export function CheckoutReturnHandler({
       {checkoutReturn && !checkoutFailed && isFree && !pollTimedOut && (
         <div
           role="status"
-          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
+          className="rounded-[12px] border border-[#BBF7D0] bg-[#F2FDF5] px-4 py-3 text-xs font-medium text-[#14532D] sm:text-[13px]"
         >
           {checkoutExplicitSuccess
             ? "Payment received! Confirming your Founding Pass..."
@@ -145,14 +154,14 @@ export function CheckoutReturnHandler({
       {pollTimedOut && (
         <div
           role="status"
-          className="flex flex-col gap-3 rounded-[14px] border border-[#FDE68A] bg-[#FFFDF7] px-4 py-3.5 text-xs text-[#713F12] sm:flex-row sm:items-center sm:justify-between sm:text-sm"
+          className="flex flex-col gap-3 rounded-[12px] border border-[#FDE68A] bg-[#FEFDF0] px-4 py-3.5 text-xs text-[#713F12] sm:flex-row sm:items-center sm:justify-between sm:text-[13px]"
         >
           <p>
             Still waiting for payment confirmation. If you cancelled checkout,
             no charge was made; if you completed payment, check again or email{" "}
             <a
               href={`mailto:${supportEmail}`}
-              className="font-semibold text-[#131316] underline"
+              className="font-semibold text-[#111111] underline"
             >
               {supportEmail}
             </a>
@@ -173,19 +182,22 @@ export function CheckoutReturnHandler({
         </div>
       )}
 
-      {wantsUpgrade && !checkoutReturn && isFree && upgradeStatus === "starting" && (
-        <div
-          role="status"
-          className="rounded-[14px] border border-black/[0.08] bg-[#FFFDF7] px-4 py-3 text-xs font-medium text-[#131316] sm:text-sm"
-        >
-          Opening $19 Founding Pass checkout...
-        </div>
-      )}
+      {wantsUpgrade &&
+        !checkoutReturn &&
+        isFree &&
+        upgradeStatus === "starting" && (
+          <div
+            role="status"
+            className="rounded-[12px] border border-black/[0.08] bg-[#F8F9F6] px-4 py-3 text-xs font-medium text-[#111111] sm:text-[13px]"
+          >
+            Opening $19 Founding Pass checkout...
+          </div>
+        )}
 
       {wantsUpgrade && !checkoutReturn && isFree && upgradeStatus === "error" && (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-[14px] border border-[#FECDD3] bg-[#FFF1F2] px-4 py-3.5 text-xs text-[#9F1239] sm:flex-row sm:items-center sm:justify-between sm:text-sm"
+          className="flex flex-col gap-3 rounded-[12px] border border-[#FECDD3] bg-[#FFF5F6] px-4 py-3.5 text-xs text-[#9F1239] sm:flex-row sm:items-center sm:justify-between sm:text-[13px]"
         >
           <p>{upgradeError}</p>
           <UpgradeCheckoutButton
@@ -199,7 +211,7 @@ export function CheckoutReturnHandler({
       {wantsUpgrade && !checkoutReturn && !isFree && (
         <div
           role="status"
-          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-xs font-medium text-[#15803D] sm:text-sm"
+          className="rounded-[12px] border border-[#BFE883] bg-[#F4FCE6] px-4 py-3 text-xs font-medium text-[#1A2E05] sm:text-[13px]"
         >
           You already have the Founding Pass unlocked.
         </div>

@@ -120,7 +120,7 @@ export function FoundingPassButton({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="pt-5 sm:pt-5">
           <div className="flex h-8 items-center pr-10">
-            <span className="inline-flex items-center rounded-full bg-[#111111] px-3 py-1 text-[11px] font-semibold text-white">
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-[#111111] px-3 py-1 text-[11px] font-semibold text-white">
               One-time · No subscription
             </span>
           </div>
@@ -166,7 +166,7 @@ export function FoundingPassButton({
                   ? "You're on the updates list."
                   : "You're on the Founding Pass list."}
               </p>
-              <p className="mt-1 text-sm text-[#14532D]/90">
+              <p className="mt-1 text-sm text-[#14532D]">
                 We recorded <span className="font-mono">{email.trim()}</span>.{" "}
                 {checkoutLive
                   ? "We'll share major PingCue updates and let you know when V1.5 Document Chaser lands."
@@ -235,10 +235,16 @@ export function FoundingPassButton({
                     }}
                     placeholder="you@studio.com"
                     aria-invalid={status === "error"}
+                    aria-describedby={
+                      status === "error" && errorMessage
+                        ? `founding-email-${source}-error`
+                        : undefined
+                    }
                     className="mt-1.5"
                   />
                   {status === "error" && errorMessage && (
                     <p
+                      id={`founding-email-${source}-error`}
                       role="alert"
                       className="mt-1.5 text-xs font-medium text-[#BE123C]"
                     >

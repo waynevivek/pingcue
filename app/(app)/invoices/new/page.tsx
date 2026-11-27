@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { UpgradeCheckoutButton } from "@/app/components/UpgradeCheckoutButton";
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 async function NewInvoiceContent() {
+  await connection();
   const { user } = await requireUser();
   const todayIso = getTodayIsoDate();
 
@@ -23,19 +25,19 @@ async function NewInvoiceContent() {
   const atFreeLimit = profile.plan === "free" && activeCount >= 1;
 
   return (
-    <div className="mx-auto max-w-xl space-y-4 md:space-y-5">
+    <div className="space-y-5">
       <div>
         <Link
           href="/invoices"
-          className="inline-flex items-center gap-1 text-xs font-medium text-[#63636A] transition-colors hover:text-[#131316]"
+          className="mb-1.5 inline-flex items-center gap-1 text-xs font-medium text-[#52525B] transition-colors hover:text-[#111111] md:hidden"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Invoices</span>
         </Link>
-        <h1 className="mt-1.5 font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#131316] sm:text-[24px]">
+        <h1 className="font-sans text-[22px] font-semibold leading-tight tracking-[-0.03em] text-[#111111] sm:text-[24px]">
           New invoice
         </h1>
-        <p className="mt-1 text-xs text-[#63636A]">
+        <p className="mt-1 text-xs text-[#52525B]">
           Add client details, due date, and payment link. PingCue schedules
           escalating reminders automatically.
         </p>
@@ -44,13 +46,13 @@ async function NewInvoiceContent() {
       {atFreeLimit && (
         <div
           role="note"
-          className="flex flex-col gap-3 rounded-[16px] border border-black/[0.08] bg-[#FFFDF7] p-4 text-xs sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[12px] border border-[#FDE68A] bg-[#FEFDF0] px-4 py-3 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-5"
         >
           <div>
-            <p className="font-semibold text-[#131316]">
+            <p className="font-semibold text-[#713F12]">
               Free plan limit reached (1/1 active invoice)
             </p>
-            <p className="mt-0.5 leading-relaxed text-[#63636A]">
+            <p className="mt-0.5 leading-relaxed text-[#713F12]">
               Mark your active invoice paid to free this slot, or unlock the
               one-time $19 Founding Pass for unlimited invoices.
             </p>
@@ -58,18 +60,20 @@ async function NewInvoiceContent() {
           <UpgradeCheckoutButton
             variant="compact"
             label="Unlock unlimited — $19"
-            className="shrink-0 rounded-[9px]"
+            className="shrink-0 rounded-[8px]"
           />
         </div>
       )}
 
-      <div className="rounded-[18px] border border-black/[0.07] bg-white p-5 shadow-[0_1px_2px_rgba(19,19,22,0.03),0_10px_28px_-18px_rgba(19,19,22,0.1)] sm:p-6">
+      <div className="rounded-[18px] border border-black/[0.08] bg-white p-5 shadow-[0_1px_2px_rgba(17,17,17,0.03),0_10px_28px_-20px_rgba(17,17,17,0.12)] sm:p-6">
         <InvoiceForm
+          key={profile.default_currency}
           mode="create"
           todayIso={todayIso}
           defaultDueDate={addDaysIso(todayIso, 7)}
           defaultCurrency={profile.default_currency}
           disabled={atFreeLimit}
+          twoColumn={true}
         />
       </div>
     </div>
@@ -80,9 +84,9 @@ export default function NewInvoicePage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-xl space-y-4">
-          <div className="h-10 w-44 animate-pulse rounded-lg bg-black/[0.06]" />
-          <div className="h-96 animate-pulse rounded-[18px] bg-white" />
+        <div className="space-y-5">
+          <div className="h-12 w-48 animate-pulse rounded-lg bg-[#F5F6F3]" />
+          <div className="h-96 animate-pulse rounded-[14px] border border-black/[0.06] bg-[#F8F9F6]" />
         </div>
       }
     >

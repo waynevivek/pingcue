@@ -29,11 +29,11 @@ export async function updateSettingsAction(
     return { error: nameValidation.error };
   }
 
-  const currencyRaw = String(formData.get("default_currency") ?? "INR")
+  const currencyRaw = String(formData.get("default_currency") ?? "USD")
     .trim()
     .toUpperCase();
   if (!CURRENCIES.includes(currencyRaw as Currency)) {
-    return { error: "Select INR, USD, EUR, or GBP." };
+    return { error: "Select USD, EUR, GBP, or INR." };
   }
 
   const notifyOnSend = formData.get("notify_on_send") === "on";

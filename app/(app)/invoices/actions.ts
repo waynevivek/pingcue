@@ -34,8 +34,10 @@ const TEST_EMAIL_HOURLY_LIMIT = 5;
 const TEST_EMAIL_DAILY_LIMIT = 10;
 
 function revalidateInvoicePaths(invoiceId?: string) {
+  revalidatePath("/(app)", "layout");
   revalidatePath("/dashboard");
   revalidatePath("/invoices");
+  revalidatePath("/invoices/new");
   if (invoiceId) {
     revalidatePath(`/invoices/${invoiceId}`);
   }

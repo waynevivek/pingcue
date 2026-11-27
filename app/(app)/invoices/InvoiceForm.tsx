@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  CURRENCY_SYMBOLS,
   DEFAULT_REMINDER_OFFSETS,
   addDaysIso,
   formatOffsetsInput,
@@ -26,11 +27,13 @@ type InvoiceFormProps =
       todayIso: string;
       defaultCurrency?: Currency;
       disabled?: boolean;
+      twoColumn?: boolean;
     }
   | {
       mode: "edit";
       invoice: Invoice;
       disabled?: boolean;
+      twoColumn?: boolean;
     };
 
 const FIELD_IDS: Record<string, string> = {
@@ -58,6 +61,7 @@ const DUE_PRESETS = [
 
 export function InvoiceForm(props: InvoiceFormProps) {
   const isEdit = props.mode === "edit";
+  const twoColumn = props.twoColumn ?? false;
   const invoice = isEdit ? props.invoice : null;
 
   const boundAction = isEdit
@@ -69,10 +73,35 @@ export function InvoiceForm(props: InvoiceFormProps) {
     INITIAL_STATE
   );
   const [blurErrors, setBlurErrors] = useState<Record<string, string>>({});
+  const initialCurrency: Currency =
+    invoice?.currency ??
+    (props.mode === "create" ? (props.defaultCurrency ?? "USD") : "USD");
+  const [selectedCurrency, setSelectedCurrency] =
+    useState<Currency>(initialCurrency);
   const [dueDate, setDueDate] = useState(
     props.mode === "edit" ? props.invoice.due_date : props.defaultDueDate
   );
+  const [fields, setFields] = useState({
+    title: invoice?.title ?? "",
+    client_name: invoice?.client_name ?? "",
+    client_email: invoice?.client_email ?? "",
+    client_whatsapp: invoice?.client_whatsapp ?? "",
+    amount: invoice ? minorToMajorInput(invoice.amount_minor) : "",
+    payment_link: invoice?.payment_link ?? "",
+    reminder_offsets: invoice
+      ? formatOffsetsInput(invoice.reminder_offsets)
+      : formatOffsetsInput([...DEFAULT_REMINDER_OFFSETS]),
+    amount_received: invoice
+      ? minorToMajorInput(invoice.amount_received_minor)
+      : "0",
+    paused_until: invoice?.paused_until ?? "",
+  });
   const summaryRef = useRef<HTMLDivElement>(null);
+
+  function updateField(name: keyof typeof fields, value: string) {
+    setFields((prev) => ({ ...prev, [name]: value }));
+    clearBlurError(name);
+  }
 
   useEffect(() => {
     if (
@@ -110,7 +139,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
     } else if (name === "client_whatsapp" && trimmed) {
       if (!normalizeWhatsappNumber(trimmed)) {
         message =
-          "Enter digits with country code (e.g. 919876543210, 7–15 digits).";
+          "Enter digits with country code (e.g. 14155550199, 7–15 digits).";
       }
     } else if (name === "payment_link" && trimmed) {
       try {
@@ -119,7 +148,7 @@ export function InvoiceForm(props: InvoiceFormProps) {
           message = "Payment link must start with https://.";
         }
       } catch {
-        message = "Enter a valid URL (e.g. https://rzp.io/l/...).";
+        message = "Enter a valid URL (e.g. https://buy.stripe.com/...).";
       }
     } else if (name === "reminder_offsets" && trimmed) {
       if (!parseReminderOffsets(trimmed)) {
@@ -147,57 +176,84 @@ export function InvoiceForm(props: InvoiceFormProps) {
   }
 
   const errorEntries = Object.entries(mergedErrors);
-  const initialCurrency: Currency =
-    invoice?.currency ??
-    (props.mode === "create" ? (props.defaultCurrency ?? "INR") : "INR");
+  function describedBy(field: string, hasHint = false): string | undefined {
+    const ids: string[] = [];
+    if (mergedErrors[field]) ids.push(`${FIELD_IDS[field]}-error`);
+    if (hasHint) ids.push(`${FIELD_IDS[field]}-hint`);
+    return ids.length > 0 ? ids.join(" ") : undefined;
+  }
+
+  const currencySymbol = CURRENCY_SYMBOLS[selectedCurrency] ?? "$";
+  const amountPlaceholder =
+    selectedCurrency === "INR"
+      ? "25000"
+      : selectedCurrency === "EUR"
+        ? "2200"
+        : selectedCurrency === "GBP"
+          ? "1800"
+          : "2400";
+
+  const sectionGrid = twoColumn
+    ? "grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8"
+    : "space-y-4";
 
   return (
-    <form action={formAction} className="space-y-7" noValidate>
-      {(state.error || errorEntries.length > 0) && (
-        <div
-          ref={summaryRef}
-          tabIndex={-1}
-          role="alert"
-          aria-labelledby="invoice-form-error-title"
-          className="rounded-[14px] border border-[#FECDD3] bg-[#FFF1F2] p-4 text-sm text-[#9F1239] focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
-        >
-          <h3 id="invoice-form-error-title" className="font-semibold">
-            {state.error ?? "Please check the fields below:"}
-          </h3>
-          {errorEntries.length > 0 && (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
-              {errorEntries.map(([field, msg]) => (
-                <li key={field}>
-                  <a
-                    href={`#${FIELD_IDS[field] ?? ""}`}
-                    className="underline hover:text-[#131316]"
-                  >
-                    {msg}
-                  </a>
-                </li>
-              ))}
-            </ul>
+    <form action={formAction} className="divide-y divide-black/[0.06]" noValidate>
+      {(state.error || errorEntries.length > 0 || state.success) && (
+        <div className="space-y-3 pb-5">
+          {(state.error || errorEntries.length > 0) && (
+            <div
+              ref={summaryRef}
+              tabIndex={-1}
+              role="alert"
+              aria-labelledby="invoice-form-error-title"
+              className="rounded-[12px] border border-[#FECDD3] bg-[#FFF5F6] p-4 text-xs text-[#9F1239] focus:outline-none focus:ring-2 focus:ring-[#E11D48] sm:text-sm"
+            >
+              <h3 id="invoice-form-error-title" className="font-semibold">
+                {state.error ?? "Please check the fields below:"}
+              </h3>
+              {errorEntries.length > 0 && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                  {errorEntries.map(([field, msg]) => (
+                    <li key={field}>
+                      <a
+                        href={`#${FIELD_IDS[field] ?? ""}`}
+                        className="underline hover:text-[#111111]"
+                      >
+                        {msg}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {state.success && (
+            <div
+              role="status"
+              className="rounded-[12px] border border-[#BBF7D0] bg-[#F2FDF5] px-4 py-3 text-xs font-medium text-[#14532D] sm:text-sm"
+            >
+              {state.success}
+            </div>
           )}
         </div>
       )}
 
-      {state.success && (
-        <div
-          role="status"
-          className="rounded-[14px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-sm font-medium text-[#15803D]"
-        >
-          {state.success}
-        </div>
-      )}
-
       {/* Group 1: Invoice & Client */}
-      <div className="space-y-4">
-        <p className="text-xs font-semibold text-[#52525B]">
-          Client &amp; invoice
-        </p>
+      <div className={`py-5 first:pt-0 ${sectionGrid}`}>
+        <div className="space-y-1">
+          <h2 className="text-[13px] font-semibold text-[#111111]">
+            Client &amp; invoice
+          </h2>
+          <p className="text-pretty text-xs leading-relaxed text-[#63636A]">
+            Who receives automated follow-ups and what appears in the subject.
+          </p>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor={FIELD_IDS.title}>
+            <Label htmlFor={FIELD_IDS.title} className="text-xs text-[#111111]">
               Invoice title <span className="text-[#BE123C]">*</span>
             </Label>
             <Input
@@ -206,21 +262,28 @@ export function InvoiceForm(props: InvoiceFormProps) {
               type="text"
               required
               disabled={props.disabled}
-              defaultValue={invoice?.title ?? ""}
-              onChange={() => clearBlurError("title")}
+              value={fields.title}
+              onChange={(e) => updateField("title", e.target.value)}
               placeholder="Website Redesign — Milestone 2"
               aria-invalid={Boolean(mergedErrors.title)}
-              className="mt-1.5"
+              aria-describedby={describedBy("title")}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6]"
             />
             {mergedErrors.title && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.title}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.title}
               </p>
             )}
           </div>
 
           <div>
-            <Label htmlFor={FIELD_IDS.client_name}>
+            <Label
+              htmlFor={FIELD_IDS.client_name}
+              className="text-xs text-[#111111]"
+            >
               Client name <span className="text-[#BE123C]">*</span>
             </Label>
             <Input
@@ -229,21 +292,28 @@ export function InvoiceForm(props: InvoiceFormProps) {
               type="text"
               required
               disabled={props.disabled}
-              defaultValue={invoice?.client_name ?? ""}
-              onChange={() => clearBlurError("client_name")}
-              placeholder="Priya Sharma"
+              value={fields.client_name}
+              onChange={(e) => updateField("client_name", e.target.value)}
+              placeholder="Maya Lin"
               aria-invalid={Boolean(mergedErrors.client_name)}
-              className="mt-1.5"
+              aria-describedby={describedBy("client_name")}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6]"
             />
             {mergedErrors.client_name && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.client_name}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.client_name}
               </p>
             )}
           </div>
 
           <div>
-            <Label htmlFor={FIELD_IDS.client_email}>
+            <Label
+              htmlFor={FIELD_IDS.client_email}
+              className="text-xs text-[#111111]"
+            >
               Client email <span className="text-[#BE123C]">*</span>
             </Label>
             <Input
@@ -252,24 +322,31 @@ export function InvoiceForm(props: InvoiceFormProps) {
               type="email"
               required
               disabled={props.disabled}
-              defaultValue={invoice?.client_email ?? ""}
-              onChange={() => clearBlurError("client_email")}
+              value={fields.client_email}
+              onChange={(e) => updateField("client_email", e.target.value)}
               onBlur={(e) =>
                 validateFieldOnBlur("client_email", e.target.value)
               }
-              placeholder="priya@client.co"
+              placeholder="maya@northstar.co"
               aria-invalid={Boolean(mergedErrors.client_email)}
-              className="mt-1.5"
+              aria-describedby={describedBy("client_email")}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6]"
             />
             {mergedErrors.client_email && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.client_email}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.client_email}
               </p>
             )}
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor={FIELD_IDS.client_whatsapp}>
+            <Label
+              htmlFor={FIELD_IDS.client_whatsapp}
+              className="text-xs text-[#111111]"
+            >
               Client WhatsApp (optional)
             </Label>
             <Input
@@ -277,21 +354,29 @@ export function InvoiceForm(props: InvoiceFormProps) {
               name="client_whatsapp"
               type="tel"
               disabled={props.disabled}
-              defaultValue={invoice?.client_whatsapp ?? ""}
-              onChange={() => clearBlurError("client_whatsapp")}
+              value={fields.client_whatsapp}
+              onChange={(e) => updateField("client_whatsapp", e.target.value)}
               onBlur={(e) =>
                 validateFieldOnBlur("client_whatsapp", e.target.value)
               }
-              placeholder="919876543210"
+              placeholder="14155550199"
               aria-invalid={Boolean(mergedErrors.client_whatsapp)}
-              className="mt-1.5 font-mono"
+              aria-describedby={describedBy("client_whatsapp", true)}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] font-mono"
             />
-            <p className="mt-1 text-xs text-[#52525B]">
-              Include country code without + (e.g. 919876543210) for 1-tap
-              WhatsApp nudges.
+            <p
+              id={`${FIELD_IDS.client_whatsapp}-hint`}
+              className="mt-1 text-[11.5px] text-[#63636A]"
+            >
+              Include country code without + (e.g.{" "}
+              <span className="font-mono text-[#52525B]">14155550199</span>) for
+              1-tap WhatsApp nudges.
             </p>
             {mergedErrors.client_whatsapp && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.client_whatsapp}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.client_whatsapp}
               </p>
             )}
@@ -300,59 +385,92 @@ export function InvoiceForm(props: InvoiceFormProps) {
       </div>
 
       {/* Group 2: Amount & Due Date */}
-      <div className="space-y-4 border-t border-black/[0.06] pt-6">
-        <p className="text-xs font-semibold text-[#52525B]">
-          Amount &amp; due date
-        </p>
+      <div className={`py-5 ${sectionGrid}`}>
+        <div className="space-y-1">
+          <h2 className="text-[13px] font-semibold text-[#111111]">
+            Amount &amp; due date
+          </h2>
+          <p className="text-xs leading-relaxed text-[#63636A]">
+            Reminders automatically chase only the remaining unpaid balance.
+          </p>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <p
               id={`${FIELD_IDS.currency}-label`}
-              className="text-sm font-medium text-[#131316]"
+              className="text-xs font-medium text-[#111111]"
             >
               Currency <span className="text-[#BE123C]">*</span>
             </p>
             <div className="mt-1.5">
               <CurrencyPicker
+                key={initialCurrency}
                 id={FIELD_IDS.currency}
                 name="currency"
                 ariaLabelledBy={`${FIELD_IDS.currency}-label`}
+                ariaDescribedBy={describedBy("currency")}
                 defaultValue={initialCurrency}
                 disabled={props.disabled}
+                onChange={setSelectedCurrency}
               />
             </div>
+            {mergedErrors.currency && (
+              <p
+                id={`${FIELD_IDS.currency}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
+                {mergedErrors.currency}
+              </p>
+            )}
           </div>
 
           <div>
-            <Label htmlFor={FIELD_IDS.amount}>
-              Invoice amount <span className="text-[#BE123C]">*</span>
+            <Label
+              htmlFor={FIELD_IDS.amount}
+              className="text-xs text-[#111111]"
+            >
+              Invoice amount ({selectedCurrency}){" "}
+              <span className="text-[#BE123C]">*</span>
             </Label>
-            <Input
-              id={FIELD_IDS.amount}
-              name="amount"
-              type="text"
-              inputMode="decimal"
-              required
-              disabled={props.disabled}
-              defaultValue={
-                invoice ? minorToMajorInput(invoice.amount_minor) : ""
-              }
-              onChange={() => clearBlurError("amount")}
-              onBlur={(e) => validateFieldOnBlur("amount", e.target.value)}
-              placeholder="45000"
-              aria-invalid={Boolean(mergedErrors.amount)}
-              className="mt-1.5 font-mono"
-            />
+            <div className="relative mt-1.5">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs font-semibold text-[#52525B]"
+              >
+                {currencySymbol}
+              </span>
+              <Input
+                id={FIELD_IDS.amount}
+                name="amount"
+                type="text"
+                inputMode="decimal"
+                required
+                disabled={props.disabled}
+                value={fields.amount}
+                onChange={(e) => updateField("amount", e.target.value)}
+                onBlur={(e) => validateFieldOnBlur("amount", e.target.value)}
+                placeholder={amountPlaceholder}
+                aria-invalid={Boolean(mergedErrors.amount)}
+                aria-describedby={describedBy("amount")}
+                className="h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] pl-7 font-mono"
+              />
+            </div>
             {mergedErrors.amount && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.amount}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.amount}
               </p>
             )}
           </div>
 
           <div>
-            <Label htmlFor={FIELD_IDS.due_date}>
+            <Label
+              htmlFor={FIELD_IDS.due_date}
+              className="text-xs text-[#111111]"
+            >
               Due date <span className="text-[#BE123C]">*</span>
             </Label>
             <Input
@@ -367,7 +485,8 @@ export function InvoiceForm(props: InvoiceFormProps) {
                 clearBlurError("due_date");
               }}
               aria-invalid={Boolean(mergedErrors.due_date)}
-              className="mt-1.5 font-mono"
+              aria-describedby={describedBy("due_date")}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] font-mono"
             />
             {props.mode === "create" && !props.disabled && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -378,14 +497,15 @@ export function InvoiceForm(props: InvoiceFormProps) {
                     <button
                       key={preset.label}
                       type="button"
+                      aria-pressed={activePreset}
                       onClick={() => {
                         setDueDate(targetIso);
                         clearBlurError("due_date");
                       }}
-                      className={`rounded-[7px] border px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#131316] ${
+                      className={`inline-flex min-h-[36px] items-center whitespace-nowrap rounded-[7px] border px-2.5 py-1 text-[11px] font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:min-h-0 ${
                         activePreset
-                          ? "border-[#131316] bg-[#131316] text-white"
-                          : "border-black/[0.08] bg-[#F5F5F3] text-[#52525B] hover:border-black/15 hover:text-[#131316]"
+                          ? "border-[#111111]/20 bg-[#C3F584] font-semibold text-[#111111]"
+                          : "border-black/[0.08] bg-[#F8F9F6] text-[#52525B] hover:border-black/20 hover:text-[#111111]"
                       }`}
                     >
                       {preset.label}
@@ -395,7 +515,10 @@ export function InvoiceForm(props: InvoiceFormProps) {
               </div>
             )}
             {mergedErrors.due_date && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.due_date}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.due_date}
               </p>
             )}
@@ -404,14 +527,23 @@ export function InvoiceForm(props: InvoiceFormProps) {
       </div>
 
       {/* Group 3: Payment Link & Cadence */}
-      <div className="space-y-4 border-t border-black/[0.06] pt-6">
-        <p className="text-xs font-semibold text-[#52525B]">
-          Payment link &amp; reminder cadence
-        </p>
+      <div className={`py-5 ${sectionGrid}`}>
+        <div className="space-y-1">
+          <h2 className="text-[13px] font-semibold text-[#111111]">
+            Payment link &amp; cadence
+          </h2>
+          <p className="text-xs leading-relaxed text-[#63636A]">
+            Paste any Stripe, Wise, PayPal, or hosted checkout link and adjust
+            follow-up timing.
+          </p>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Label htmlFor={FIELD_IDS.payment_link}>
+            <Label
+              htmlFor={FIELD_IDS.payment_link}
+              className="text-xs text-[#111111]"
+            >
               Payment link (optional)
             </Label>
             <Input
@@ -419,24 +551,31 @@ export function InvoiceForm(props: InvoiceFormProps) {
               name="payment_link"
               type="url"
               disabled={props.disabled}
-              defaultValue={invoice?.payment_link ?? ""}
-              onChange={() => clearBlurError("payment_link")}
+              value={fields.payment_link}
+              onChange={(e) => updateField("payment_link", e.target.value)}
               onBlur={(e) =>
                 validateFieldOnBlur("payment_link", e.target.value)
               }
-              placeholder="https://rzp.io/l/your-payment-link"
+              placeholder="https://buy.stripe.com/your-payment-link"
               aria-invalid={Boolean(mergedErrors.payment_link)}
-              className="mt-1.5"
+              aria-describedby={describedBy("payment_link")}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6]"
             />
             {mergedErrors.payment_link && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.payment_link}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.payment_link}
               </p>
             )}
           </div>
 
           <div className="sm:col-span-2">
-            <Label htmlFor={FIELD_IDS.reminder_offsets}>
+            <Label
+              htmlFor={FIELD_IDS.reminder_offsets}
+              className="text-xs text-[#111111]"
+            >
               Reminder schedule (days relative to due date)
             </Label>
             <Input
@@ -444,24 +583,30 @@ export function InvoiceForm(props: InvoiceFormProps) {
               name="reminder_offsets"
               type="text"
               disabled={props.disabled}
-              defaultValue={
-                invoice
-                  ? formatOffsetsInput(invoice.reminder_offsets)
-                  : formatOffsetsInput([...DEFAULT_REMINDER_OFFSETS])
-              }
-              onChange={() => clearBlurError("reminder_offsets")}
+              value={fields.reminder_offsets}
+              onChange={(e) => updateField("reminder_offsets", e.target.value)}
               onBlur={(e) =>
                 validateFieldOnBlur("reminder_offsets", e.target.value)
               }
               aria-invalid={Boolean(mergedErrors.reminder_offsets)}
-              className="mt-1.5 font-mono"
+              aria-describedby={describedBy("reminder_offsets", true)}
+              className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] font-mono"
             />
-            <p className="mt-1 text-xs text-[#52525B]">
-              Default: <span className="font-mono">-3, 0, 3, 7, 14, 30</span>.
-              Negative = before due date; positive = days overdue.
+            <p
+              id={`${FIELD_IDS.reminder_offsets}-hint`}
+              className="mt-1 text-[11.5px] text-[#63636A]"
+            >
+              Default:{" "}
+              <span className="font-mono text-[#52525B]">
+                -3, 0, 3, 7, 14, 30
+              </span>
+              . Negative = before due date; positive = days overdue.
             </p>
             {mergedErrors.reminder_offsets && (
-              <p className="mt-1 text-xs font-medium text-[#BE123C]">
+              <p
+                id={`${FIELD_IDS.reminder_offsets}-error`}
+                className="mt-1 text-xs font-medium text-[#BE123C]"
+              >
                 {mergedErrors.reminder_offsets}
               </p>
             )}
@@ -470,46 +615,70 @@ export function InvoiceForm(props: InvoiceFormProps) {
           {isEdit && invoice && (
             <>
               <div>
-                <Label htmlFor={FIELD_IDS.amount_received}>
-                  Amount received
+                <Label
+                  htmlFor={FIELD_IDS.amount_received}
+                  className="text-xs text-[#111111]"
+                >
+                  Amount received ({selectedCurrency})
                 </Label>
-                <Input
-                  id={FIELD_IDS.amount_received}
-                  name="amount_received"
-                  type="text"
-                  inputMode="decimal"
-                  defaultValue={minorToMajorInput(
-                    invoice.amount_received_minor
-                  )}
-                  onChange={() => clearBlurError("amount_received")}
-                  onBlur={(e) =>
-                    validateFieldOnBlur("amount_received", e.target.value)
-                  }
-                  aria-invalid={Boolean(mergedErrors.amount_received)}
-                  className="mt-1.5 font-mono"
-                />
+                <div className="relative mt-1.5">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs font-semibold text-[#52525B]"
+                  >
+                    {currencySymbol}
+                  </span>
+                  <Input
+                    id={FIELD_IDS.amount_received}
+                    name="amount_received"
+                    type="text"
+                    inputMode="decimal"
+                    disabled={props.disabled}
+                    value={fields.amount_received}
+                    onChange={(e) =>
+                      updateField("amount_received", e.target.value)
+                    }
+                    onBlur={(e) =>
+                      validateFieldOnBlur("amount_received", e.target.value)
+                    }
+                    aria-invalid={Boolean(mergedErrors.amount_received)}
+                    aria-describedby={describedBy("amount_received")}
+                    className="h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] pl-7 font-mono"
+                  />
+                </div>
                 {mergedErrors.amount_received && (
-                  <p className="mt-1 text-xs font-medium text-[#BE123C]">
+                  <p
+                    id={`${FIELD_IDS.amount_received}-error`}
+                    className="mt-1 text-xs font-medium text-[#BE123C]"
+                  >
                     {mergedErrors.amount_received}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor={FIELD_IDS.paused_until}>
+                <Label
+                  htmlFor={FIELD_IDS.paused_until}
+                  className="text-xs text-[#111111]"
+                >
                   Paused until (optional)
                 </Label>
                 <Input
                   id={FIELD_IDS.paused_until}
                   name="paused_until"
                   type="date"
-                  defaultValue={invoice.paused_until ?? ""}
-                  onChange={() => clearBlurError("paused_until")}
+                  disabled={props.disabled}
+                  value={fields.paused_until}
+                  onChange={(e) => updateField("paused_until", e.target.value)}
                   aria-invalid={Boolean(mergedErrors.paused_until)}
-                  className="mt-1.5 font-mono"
+                  aria-describedby={describedBy("paused_until")}
+                  className="mt-1.5 h-10 scroll-mt-24 rounded-[9px] border-black/10 bg-[#F8F9F6] font-mono"
                 />
                 {mergedErrors.paused_until && (
-                  <p className="mt-1 text-xs font-medium text-[#BE123C]">
+                  <p
+                    id={`${FIELD_IDS.paused_until}-error`}
+                    className="mt-1 text-xs font-medium text-[#BE123C]"
+                  >
                     {mergedErrors.paused_until}
                   </p>
                 )}
@@ -519,11 +688,11 @@ export function InvoiceForm(props: InvoiceFormProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-1">
+      <div className="flex items-center justify-end gap-3 pt-5">
         <Button
           type="submit"
           disabled={props.disabled || pending}
-          className="h-10 w-full rounded-[9px] border border-[#131316] bg-[#131316] px-5 text-sm font-medium text-white shadow-[0_1px_2px_rgba(19,19,22,0.18),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-[#26262B] sm:w-auto"
+          className="h-10 w-full rounded-[9px] border border-[#111111] bg-[#111111] px-5 text-xs font-medium text-white shadow-[0_1px_2px_rgba(17,17,17,0.16)] hover:bg-[#262626] active:bg-[#000000] sm:h-9 sm:w-auto"
         >
           {pending
             ? "Saving..."
