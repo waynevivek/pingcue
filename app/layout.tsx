@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, JetBrains_Mono } from "next/font/google";
-import { getMetadataBase, SITE_NAME } from "@/lib/site-config";
+import { AnalyticsProviders } from "@/app/components/AnalyticsProviders";
+import {
+  getMetadataBase,
+  getTwitterHandle,
+  getVerificationTokens,
+  isIndexingAllowed,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+} from "@/lib/site-config";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -15,9 +24,9 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-const DEFAULT_TITLE = "PingCue — Polite Invoice Chasers for Freelancers";
-const DEFAULT_DESCRIPTION =
-  "Send payment links by email or WhatsApp? PingCue automatically sends escalating payment reminders so you get paid without an invoicing suite.";
+const indexingAllowed = isIndexingAllowed();
+const verificationTokens = getVerificationTokens();
+const twitterHandle = getTwitterHandle();
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -28,19 +37,76 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
-  title: DEFAULT_TITLE,
-  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "PingCue",
+    "automated invoice reminders",
+    "invoice chaser for freelancers",
+    "payment link reminders",
+    "overdue invoice follow up email",
+    "WhatsApp payment reminder",
+    "freelance invoice reminder app",
+    "Stripe payment link reminder",
+    "Wise PayPal UPI payment reminder",
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "Finance & Productivity",
+  referrer: "strict-origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  robots: indexingAllowed
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      }
+    : {
+        index: false,
+        follow: false,
+      },
+  ...(verificationTokens.google ||
+  verificationTokens.bing ||
+  verificationTokens.yandex
+    ? {
+        verification: {
+          ...(verificationTokens.google
+            ? { google: verificationTokens.google }
+            : {}),
+          ...(verificationTokens.yandex
+            ? { yandex: verificationTokens.yandex }
+            : {}),
+          ...(verificationTokens.bing
+            ? { other: { "msvalidate.01": verificationTokens.bing } }
+            : {}),
+        },
+      }
+    : {}),
   openGraph: {
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESCRIPTION,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
+    locale: "en_US",
     type: "website",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESCRIPTION,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    ...(twitterHandle ? { site: twitterHandle, creator: twitterHandle } : {}),
   },
 };
 
@@ -59,6 +125,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
+        <AnalyticsProviders />
       </body>
     </html>
   );

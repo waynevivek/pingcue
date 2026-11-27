@@ -1,5 +1,5 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -10,12 +10,14 @@ import {
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/db";
 import { isDodoCheckoutEnabled } from "@/lib/dodo";
+import { buildHomeJsonLd } from "@/lib/seo";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 import { EscalationCadenceDemo } from "./components/EscalationCadenceDemo";
 import { FaqAccordion } from "./components/FaqAccordion";
 import { FoundingPassButton } from "./components/FoundingPassButton";
+import { HeaderAuthLink } from "./components/HeaderAuthLink";
+import { JsonLd } from "./components/JsonLd";
 import heroStyles from "./components/HeroEscalation.module.css";
 import {
   ChimeBellSticker,
@@ -73,36 +75,18 @@ const FAQS = [
   },
 ] as const;
 
-async function HeaderAuthAction() {
-  let isSignedIn = false;
-
-  if (isSupabaseConfigured()) {
-    try {
-      const supabase = await createSupabaseServerClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      isSignedIn = Boolean(user);
-    } catch {
-      isSignedIn = false;
-    }
-  }
-
-  return (
-    <Link
-      href={isSignedIn ? "/dashboard" : "/login"}
-      className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
-    >
-      {isSignedIn ? "Dashboard" : "Sign in"}
-    </Link>
-  );
-}
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function HomePage() {
   const checkoutLive = isDodoCheckoutEnabled();
 
   return (
     <div id="top" className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
+      <JsonLd data={buildHomeJsonLd(FAQS)} />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
@@ -138,18 +122,7 @@ export default function HomePage() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-            <Suspense
-              fallback={
-                <Link
-                  href="/login"
-                  className="whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-semibold text-[#111111] transition-colors hover:bg-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] sm:px-4 sm:text-[13.5px]"
-                >
-                  Sign in
-                </Link>
-              }
-            >
-              <HeaderAuthAction />
-            </Suspense>
+            <HeaderAuthLink />
             <FoundingPassButton
               source="nav"
               variant="compact"
@@ -797,7 +770,7 @@ export default function HomePage() {
             </div>
 
             {/* Structured Link Columns */}
-            <div className="grid grid-cols-2 gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)] lg:col-span-7">
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-7">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
                   Product
@@ -840,6 +813,54 @@ export default function HomePage() {
 
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                  Resources
+                </p>
+                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                  <li>
+                    <Link
+                      href="/guides"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      All Guides
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/templates/invoice-payment-reminder-emails"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Email Templates
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/templates/whatsapp-payment-reminder-messages"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      WhatsApp Nudges
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/guides/how-to-chase-unpaid-invoices"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Overdue Playbook
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/compare/pingcue-vs-invoicing-suites"
+                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                    >
+                      Compare Tools
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
                   Legal
                 </p>
                 <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
@@ -870,7 +891,7 @@ export default function HomePage() {
                 </ul>
               </div>
 
-              <div className="col-span-2 sm:col-span-1">
+              <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
                   Connect
                 </p>
@@ -880,7 +901,7 @@ export default function HomePage() {
                       href={`mailto:${SUPPORT_EMAIL}`}
                       className="break-words transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
-                      Contact: {SUPPORT_EMAIL}
+                      {SUPPORT_EMAIL}
                     </a>
                   </li>
                   <li>

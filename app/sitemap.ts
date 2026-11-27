@@ -1,41 +1,20 @@
 import type { MetadataRoute } from "next";
+import { getSitemapRoutes } from "@/lib/seo-routes";
 import { getSiteUrl } from "@/lib/site-config";
-
-const STATIC_LAST_MODIFIED = "2026-11-24";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
 
-  return [
-    {
-      url: `${siteUrl}/`,
-      lastModified: STATIC_LAST_MODIFIED,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${siteUrl}/login`,
-      lastModified: STATIC_LAST_MODIFIED,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${siteUrl}/terms`,
-      lastModified: STATIC_LAST_MODIFIED,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/privacy`,
-      lastModified: STATIC_LAST_MODIFIED,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/refund`,
-      lastModified: STATIC_LAST_MODIFIED,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-  ];
+  return getSitemapRoutes().map((route) => {
+    const url = route.path === "/" ? `${siteUrl}/` : `${siteUrl}${route.path}`;
+    return {
+      url,
+      lastModified: route.lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+      ...(route.includeOgImage
+        ? { images: [`${siteUrl}/opengraph-image`] }
+        : {}),
+    };
+  });
 }

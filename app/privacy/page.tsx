@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { buildPageMetadata } from "@/lib/seo";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Privacy Policy — PingCue",
   description: "How PingCue handles your account and client invoice data.",
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (
@@ -63,9 +65,10 @@ export default function PrivacyPage() {
                 <p className="mt-1.5">
                   We never sell your data or your clients&apos; contact details.
                   We use trusted infrastructure providers strictly to operate
-                  the service: Vercel (hosting), Supabase (database &amp;
-                  authentication), Resend (email delivery), and Dodo Payments
-                  (checkout &amp; tax compliance).
+                  the service: Vercel (hosting, privacy-friendly Web Analytics,
+                  and Speed Insights), Supabase (database &amp; authentication),
+                  Resend (email delivery), and Dodo Payments (checkout &amp; tax
+                  compliance).
                 </p>
               </section>
 
