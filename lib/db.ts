@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { Currency, Invoice, Profile } from "./invoices";
+import { cache } from "react";
+import { CURRENCIES, type Currency, type Invoice, type Profile } from "./invoices";
 import type { ReminderLog } from "./reminders";
 import {
   getSupabaseAdminEnv,
@@ -54,7 +55,13 @@ export function createSupabaseAdminClient() {
   });
 }
 
-export async function requireUser() {
+function normalizeStoredCurrency(value: unknown): Currency {
+  return typeof value === "string" && CURRENCIES.includes(value as Currency)
+    ? (value as Currency)
+    : "USD";
+}
+
+export const requireUser = cache(async function requireUser() {
   if (!isSupabaseConfigured()) {
     redirect("/login");
   }
@@ -69,9 +76,9 @@ export async function requireUser() {
   }
 
   return { supabase, user };
-}
+});
 
-export async function getUserProfile(
+export const getUserProfile = cache(async function getUserProfile(
   userId: string,
   fallbackEmail: string
 ): Promise<Profile> {
@@ -92,8 +99,7 @@ export async function getUserProfile(
       founding_pass_unlocked_at:
         (data.founding_pass_unlocked_at as string | null) ?? null,
       display_name: (data.display_name as string | null) ?? null,
-      default_currency:
-        (data.default_currency as Currency | null) ?? "INR",
+      default_currency: normalizeStoredCurrency(data.default_currency),
       notify_on_send:
         typeof data.notify_on_send === "boolean" ? data.notify_on_send : true,
       dodo_payment_id: (data.dodo_payment_id as string | null) ?? null,
@@ -116,7 +122,7 @@ export async function getUserProfile(
         founding_pass_unlocked_at:
           (legacy.founding_pass_unlocked_at as string | null) ?? null,
         display_name: null,
-        default_currency: "INR",
+        default_currency: "USD",
         notify_on_send: true,
         dodo_payment_id: null,
       };
@@ -129,11 +135,11 @@ export async function getUserProfile(
     plan: "free",
     founding_pass_unlocked_at: null,
     display_name: null,
-    default_currency: "INR",
+    default_currency: "USD",
     notify_on_send: true,
     dodo_payment_id: null,
   };
-}
+});
 
 export async function isEmailSuppressed(email: string): Promise<boolean> {
   const suppressed = await listSuppressedEmails([email]);
@@ -172,7 +178,9 @@ export async function listSuppressedEmails(
   return result;
 }
 
-export async function listInvoices(userId: string): Promise<Invoice[]> {
+export const listInvoices = cache(async function listInvoices(
+  userId: string
+): Promise<Invoice[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("invoices")
@@ -186,7 +194,7 @@ export async function listInvoices(userId: string): Promise<Invoice[]> {
   }
 
   return (data ?? []) as Invoice[];
-}
+});
 
 export async function getInvoiceById(
   userId: string,

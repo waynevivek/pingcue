@@ -1,11 +1,11 @@
-export const CURRENCIES = ["INR", "USD", "EUR", "GBP"] as const;
+export const CURRENCIES = ["USD", "EUR", "GBP", "INR"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
-  INR: "₹",
   USD: "$",
   EUR: "€",
   GBP: "£",
+  INR: "₹",
 };
 
 export const DEFAULT_REMINDER_OFFSETS = [-3, 0, 3, 7, 14, 30] as const;
@@ -335,7 +335,7 @@ export function validateInvoiceFormData(
     .trim()
     .toLowerCase();
   const whatsappRaw = String(formData.get("client_whatsapp") ?? "").trim();
-  const currencyRaw = String(formData.get("currency") ?? "INR")
+  const currencyRaw = String(formData.get("currency") ?? "USD")
     .trim()
     .toUpperCase();
   const amountRaw = String(formData.get("amount") ?? "").trim();
@@ -368,14 +368,14 @@ export function validateInvoiceFormData(
     clientWhatsapp = normalizeWhatsappNumber(whatsappRaw);
     if (!clientWhatsapp) {
       fieldErrors.client_whatsapp =
-        "Enter digits with country code (e.g. 919876543210, 7–15 digits).";
+        "Enter digits with country code (e.g. 14155550199, 7–15 digits).";
     }
   }
 
   const currency = CURRENCIES.includes(currencyRaw as Currency)
     ? (currencyRaw as Currency)
     : null;
-  if (!currency) fieldErrors.currency = "Select INR, USD, EUR, or GBP.";
+  if (!currency) fieldErrors.currency = "Select USD, EUR, GBP, or INR.";
 
   const amountMinor = parseMajorToMinor(amountRaw);
   if (amountMinor === null || amountMinor <= 0) {
@@ -414,7 +414,7 @@ export function validateInvoiceFormData(
         }
       } catch {
         fieldErrors.payment_link =
-          "Enter a valid URL (e.g. https://rzp.io/l/...).";
+          "Enter a valid URL (e.g. https://buy.stripe.com/...).";
       }
     }
   }

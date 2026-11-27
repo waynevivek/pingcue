@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { Check, Mail, MessageSquare, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./HeroEscalation.module.css";
@@ -22,61 +22,61 @@ const CADENCE_STEPS: readonly CadenceStep[] = [
     offset: "-3d",
     dateLabel: "11 Nov",
     tone: "Friendly",
-    subject: "Heads up — Northstar Design Retainer due 14 Nov (₹20,000 left)",
+    subject: "Heads up — Northstar Design Retainer due 14 Nov ($1,200 left)",
     emailBody:
-      "Hi Priya, quick heads-up that the remaining ₹20,000 on Northstar Design Retainer is due on 14 Nov. Whenever convenient, you can settle via the payment link below.",
+      "Hi Maya, quick heads-up that the remaining $1,200 on Northstar Design Retainer is due on 14 Nov. Whenever convenient, you can settle via the payment link below.",
     whatsappBody:
-      "Hi Priya, quick heads-up that ₹20,000 on Northstar Design Retainer is due on 14 Nov. Sharing the link here whenever you're ready: https://rzp.io/l/northstar",
+      "Hi Maya, quick heads-up that $1,200 on Northstar Design Retainer is due on 14 Nov. Sharing the link here whenever you're ready: https://pay.northstar.co/inv-104",
   },
   {
     offset: "0d",
     dateLabel: "14 Nov",
     tone: "Friendly",
-    subject: "Due today — ₹20,000 remaining on Northstar Design Retainer",
+    subject: "Due today — $1,200 remaining on Northstar Design Retainer",
     emailBody:
-      "Hi Priya, hope your week is going well. Just a gentle reminder that the remaining balance of ₹20,000 is due today. Feel free to reply here if you need anything else.",
+      "Hi Maya, hope your week is going well. Just a gentle reminder that the remaining balance of $1,200 is due today. Feel free to reply here if you need anything else.",
     whatsappBody:
-      "Hi Priya, friendly reminder that ₹20,000 on Northstar Design Retainer is due today (14 Nov). Payment link: https://rzp.io/l/northstar",
+      "Hi Maya, friendly reminder that $1,200 on Northstar Design Retainer is due today (14 Nov). Payment link: https://pay.northstar.co/inv-104",
   },
   {
     offset: "+3d",
     dateLabel: "17 Nov",
     tone: "Friendly",
-    subject: "Checking in — ₹20,000 on Northstar Design Retainer (3 days past due)",
+    subject: "Checking in — $1,200 on Northstar Design Retainer (3 days past due)",
     emailBody:
-      "Hi Priya, thanks again for the ₹25,000 received so far. Checking in on the remaining ₹20,000, which passed due 3 days ago. You can clear it with the link below.",
+      "Hi Maya, thanks again for the $1,500 received so far. Checking in on the remaining $1,200, which passed due 3 days ago. You can clear it with the link below.",
     whatsappBody:
-      "Hi Priya, checking in on the ₹20,000 remaining for Northstar Design Retainer (due 14 Nov). Here is the payment link again: https://rzp.io/l/northstar",
+      "Hi Maya, checking in on the $1,200 remaining for Northstar Design Retainer (due 14 Nov). Here is the payment link again: https://pay.northstar.co/inv-104",
   },
   {
     offset: "+7d",
     dateLabel: "21 Nov",
     tone: "Firm",
-    subject: "Quick follow-up — ₹20,000 remaining (7 days overdue)",
+    subject: "Quick follow-up — $1,200 remaining (7 days overdue)",
     emailBody:
-      "Hi Priya, thanks for the ₹25,000 received so far. The remaining balance of ₹20,000 is now 7 days past due. Please settle it using the link below or reply with an update.",
+      "Hi Maya, thanks for the $1,500 received so far. The remaining balance of $1,200 is now 7 days past due. Please settle it using the link below or reply with an update.",
     whatsappBody:
-      "Hi Priya, following up on the remaining ₹20,000 for Northstar Design Retainer (7 days overdue). Could you confirm when this will be settled? https://rzp.io/l/northstar",
+      "Hi Maya, following up on the remaining $1,200 for Northstar Design Retainer (7 days overdue). Could you confirm when this will be settled? https://pay.northstar.co/inv-104",
   },
   {
     offset: "+14d",
     dateLabel: "28 Nov",
     tone: "Firm",
-    subject: "Overdue balance — ₹20,000 past due by 14 days",
+    subject: "Overdue balance — $1,200 past due by 14 days",
     emailBody:
-      "Hi Priya, this is a follow-up that ₹20,000 on Northstar Design Retainer is now 14 days overdue. Please complete payment today or let me know by reply when it is scheduled.",
+      "Hi Maya, this is a follow-up that $1,200 on Northstar Design Retainer is now 14 days overdue. Please complete payment today or let me know by reply when it is scheduled.",
     whatsappBody:
-      "Hi Priya, ₹20,000 for Northstar Design Retainer is now 14 days overdue. Please settle via https://rzp.io/l/northstar or share the payment date.",
+      "Hi Maya, $1,200 for Northstar Design Retainer is now 14 days overdue. Please settle via https://pay.northstar.co/inv-104 or share the payment date.",
   },
   {
     offset: "+30d",
     dateLabel: "14 Dec",
     tone: "Final",
-    subject: "Final notice — ₹20,000 remaining (30 days overdue)",
+    subject: "Final notice — $1,200 remaining (30 days overdue)",
     emailBody:
-      "Hi Priya, ₹20,000 for Northstar Design Retainer is now 30 days overdue. This is the final automated reminder—please process the remaining balance via the link below or reply today.",
+      "Hi Maya, $1,200 for Northstar Design Retainer is now 30 days overdue. This is the final automated reminder—please process the remaining balance via the link below or reply today.",
     whatsappBody:
-      "Hi Priya, final reminder that ₹20,000 on Northstar Design Retainer is 30 days overdue. Please settle at https://rzp.io/l/northstar or reply today.",
+      "Hi Maya, final reminder that $1,200 on Northstar Design Retainer is 30 days overdue. Please settle at https://pay.northstar.co/inv-104 or reply today.",
   },
 ];
 
@@ -146,12 +146,52 @@ export function EscalationCadenceDemo() {
   const [selectedIndex, setSelectedIndex] = useState(3);
   const [paused, setPaused] = useState(false);
   const [channel, setChannel] = useState<"email" | "whatsapp">("email");
+  const stepRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const channelRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const activeStep = CADENCE_STEPS[selectedIndex];
 
   function handleSelectTier(tier: EscalationTier) {
     if (activeStep.tone === tier.tone) return;
     setSelectedIndex(tier.defaultIndex);
+  }
+
+  function handleStepKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) {
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight")
+      nextIndex = (index + 1) % CADENCE_STEPS.length;
+    else if (event.key === "ArrowLeft")
+      nextIndex = (index - 1 + CADENCE_STEPS.length) % CADENCE_STEPS.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = CADENCE_STEPS.length - 1;
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      setSelectedIndex(nextIndex);
+      stepRefs.current[nextIndex]?.focus();
+    }
+  }
+
+  function handleChannelKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) {
+    const channels: Array<"email" | "whatsapp"> = ["email", "whatsapp"];
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % channels.length;
+    else if (event.key === "ArrowLeft")
+      nextIndex = (index - 1 + channels.length) % channels.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = channels.length - 1;
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      setChannel(channels[nextIndex]);
+      channelRefs.current[nextIndex]?.focus();
+    }
   }
 
   return (
@@ -231,13 +271,13 @@ export function EscalationCadenceDemo() {
                   <span className="h-2.5 w-2.5 rounded-full bg-[#FFD166]" />
                   <span className="h-2.5 w-2.5 rounded-full bg-[#4ADE80]" />
                 </div>
-                <span className="text-[12px] font-medium text-[#71717A]">
+                <span className="text-[12px] font-medium text-[#63636A]">
                   Sample invoice · Synthetic demo
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="hidden text-[12px] font-medium text-[#71717A] sm:inline">
+                <span className="hidden text-[12px] font-medium text-[#63636A] sm:inline">
                   a live demo. click around.
                 </span>
               </div>
@@ -255,36 +295,36 @@ export function EscalationCadenceDemo() {
                         Northstar Design Retainer
                       </p>
                       <p className="mt-0.5 text-[12px] leading-snug text-[#574C1B]">
-                        priya@northstar.co · Due 14 Nov · Reply-To: you@studio.com
+                        maya@northstar.co · Due 14 Nov · Reply-To: you@studio.com
                       </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-2.5 py-0.5 text-[11px] font-semibold text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-black/[0.08] bg-white px-2.5 py-0.5 text-[11px] font-semibold text-[#111111] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                         <span
                           aria-hidden="true"
-                          className="h-1.5 w-1.5 rounded-full bg-[#22C55E]"
+                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#22C55E]"
                         />
                         Partial
                       </span>
                       {paused && (
-                        <span className="inline-flex items-center rounded-full border border-black/10 bg-[#111111] px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                        <span className="inline-flex items-center whitespace-nowrap rounded-full border border-black/10 bg-[#111111] px-2.5 py-0.5 text-[11px] font-semibold text-white">
                           Paused until 28 Nov
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* INR Amount Hero */}
+                  {/* USD Amount Hero */}
                   <div className="mt-5 flex flex-wrap items-baseline justify-between gap-2">
                     <p className="text-[28px] font-bold leading-none tracking-[-0.035em] text-[#111111] tabular-nums">
-                      ₹20,000{" "}
+                      $1,200{" "}
                       <span className="text-[13px] font-medium tracking-normal text-[#574C1B]">
                         left
                       </span>
                     </p>
                     <p className="text-[12px] font-medium text-[#574C1B] tabular-nums">
-                      ₹25,000 of ₹45,000 INR received
+                      $1,500 of $2,700 USD received
                     </p>
                   </div>
 
@@ -298,7 +338,7 @@ export function EscalationCadenceDemo() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] font-medium text-[#574C1B] tabular-nums">
                       <span>55.6% paid</span>
-                      <span>Chasing remaining ₹20,000</span>
+                      <span>Chasing remaining $1,200</span>
                     </div>
                   </div>
                 </div>
@@ -357,7 +397,7 @@ export function EscalationCadenceDemo() {
                               <p className="text-[13px] font-semibold leading-tight text-[#111111]">
                                 {tier.tone}
                               </p>
-                              <p className="truncate text-[11px] text-[#64748B]">
+                              <p className="truncate text-[11px] text-[#52525B]">
                                 {tier.summary}
                               </p>
                             </div>
@@ -365,7 +405,7 @@ export function EscalationCadenceDemo() {
 
                           <span
                             className={cn(
-                              "shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums sm:px-2.5",
+                              "shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums sm:px-2.5",
                               isActive
                                 ? "border-[#111111] bg-[#111111] text-white"
                                 : tier.pillClasses
@@ -393,7 +433,7 @@ export function EscalationCadenceDemo() {
                     <span className="text-[13px] font-semibold tracking-[-0.01em] text-[#111111]">
                       Escalation timeline
                     </span>
-                    <span className="rounded-full bg-white/80 px-2.5 py-0.5 font-semibold text-[#1A2E05] tabular-nums">
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-white/85 px-2.5 py-0.5 font-semibold text-[#1A2E05] tabular-nums">
                       {paused
                         ? "Paused through 28 Nov"
                         : `Step ${activeStep.offset} · ${activeStep.tone}`}
@@ -411,23 +451,30 @@ export function EscalationCadenceDemo() {
                       return (
                         <button
                           key={step.offset}
+                          ref={(el) => {
+                            stepRefs.current[index] = el;
+                          }}
+                          id={`demo-step-${index}`}
                           type="button"
                           role="tab"
                           aria-selected={selected}
+                          aria-controls="demo-dispatch-panel"
+                          tabIndex={selected ? 0 : -1}
                           onClick={() => setSelectedIndex(index)}
+                          onKeyDown={(e) => handleStepKeyDown(e, index)}
                           className={cn(
-                            "flex flex-col items-center justify-center rounded-xl border px-1.5 py-2.5 text-center transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] active:translate-y-[2px] active:shadow-none",
+                            "flex flex-col items-center justify-center rounded-xl border px-1.5 py-2.5 text-center transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] active:translate-y-[2px] active:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
                             selected
-                              ? "border-[#111111] bg-[#111111] text-white shadow-[0_3px_0_rgba(17,17,17,0.3)] -translate-y-0.5"
+                              ? "border-[#111111] bg-[#111111] text-white shadow-[0_3px_0_rgba(17,17,17,0.3)] -translate-y-0.5 motion-reduce:translate-y-0"
                               : sent
-                                ? "border-black/10 bg-white/85 text-[#52525B] shadow-[0_3px_0_rgba(17,17,17,0.09)] hover:bg-white hover:text-[#111111]"
+                                ? "border-black/10 bg-white/90 text-[#52525B] shadow-[0_3px_0_rgba(17,17,17,0.09)] hover:-translate-y-0.5 hover:bg-white hover:text-[#111111]"
                                 : "border-black/10 bg-white text-[#111111] shadow-[0_3px_0_rgba(17,17,17,0.12)] hover:-translate-y-0.5"
                           )}
                         >
-                          <div className="inline-flex items-center gap-0.5 text-[12px] font-bold tabular-nums leading-none">
+                          <div className="inline-flex items-center gap-0.5 whitespace-nowrap text-[12px] font-bold tabular-nums leading-none">
                             {sent && !selected && (
                               <Check
-                                className="h-3 w-3 text-[#22C55E]"
+                                className="h-3 w-3 shrink-0 text-[#15803D]"
                                 strokeWidth={2.5}
                                 aria-hidden="true"
                               />
@@ -436,8 +483,8 @@ export function EscalationCadenceDemo() {
                           </div>
                           <div
                             className={cn(
-                              "mt-1 text-[11px] font-medium leading-none",
-                              selected ? "text-white/85" : "text-[#71717A]"
+                              "mt-1 whitespace-nowrap text-[11px] font-medium leading-none",
+                              selected ? "text-white/90" : "text-[#63636A]"
                             )}
                           >
                             {sent && !selected ? "Sent" : step.tone}
@@ -449,17 +496,22 @@ export function EscalationCadenceDemo() {
                 </div>
 
                 {/* Live Dispatch Preview + Tactile Controls */}
-                <div className="flex flex-1 flex-col justify-between rounded-[20px] border border-black/[0.07] bg-[#FAFAFA] p-4 sm:p-5">
+                <div
+                  id="demo-dispatch-panel"
+                  role="tabpanel"
+                  aria-labelledby={`demo-step-${selectedIndex}`}
+                  className="flex flex-1 flex-col justify-between rounded-[20px] border border-black/[0.07] bg-[#FAFAFA] p-4 sm:p-5"
+                >
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3 text-[12px]">
                       <span className="min-w-0 max-w-full truncate font-medium text-[#52525B]">
                         {channel === "email"
-                          ? "To: priya@northstar.co · Reply-To: you@studio.com"
+                          ? "To: maya@northstar.co · Reply-To: you@studio.com"
                           : "WhatsApp wa.me · Prefilled nudge"}
                       </span>
                       <span
                         className={cn(
-                          "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
+                          "inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
                           tonePillClasses(activeStep.tone)
                         )}
                       >
@@ -467,7 +519,16 @@ export function EscalationCadenceDemo() {
                       </span>
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)]">
+                    <div
+                      id="demo-channel-panel"
+                      role="tabpanel"
+                      aria-labelledby={
+                        channel === "email"
+                          ? "demo-channel-email"
+                          : "demo-channel-whatsapp"
+                      }
+                      className="mt-4 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
+                    >
                       {channel === "email" && (
                         <p className="text-[13.5px] font-semibold tracking-[-0.01em] text-[#111111]">
                           Subject: {activeStep.subject}
@@ -502,7 +563,7 @@ export function EscalationCadenceDemo() {
                         aria-pressed={paused}
                         onClick={() => setPaused((prev) => !prev)}
                         className={cn(
-                          "inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 font-semibold transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] active:translate-y-[1px] active:shadow-none",
+                          "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 font-semibold transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] hover:-translate-y-0.5 active:translate-y-[1px] active:shadow-none motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0",
                           paused
                             ? "border-[#111111] bg-[#FFE875] text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.18)]"
                             : "border-black/10 bg-white text-[#111111] shadow-[0_2px_0_rgba(17,17,17,0.08)] hover:bg-[#F4F4F5]"
@@ -529,13 +590,25 @@ export function EscalationCadenceDemo() {
                         )}
                       </button>
 
-                      <div className="inline-flex rounded-full border border-black/[0.08] bg-[#EFEFF1] p-0.5">
+                      <div
+                        role="tablist"
+                        aria-label="Preview message channel"
+                        className="inline-flex rounded-full border border-black/[0.08] bg-[#EFEFF1] p-0.5"
+                      >
                         <button
+                          id="demo-channel-email"
+                          ref={(el) => {
+                            channelRefs.current[0] = el;
+                          }}
                           type="button"
-                          aria-pressed={channel === "email"}
+                          role="tab"
+                          aria-selected={channel === "email"}
+                          aria-controls="demo-channel-panel"
+                          tabIndex={channel === "email" ? 0 : -1}
                           onClick={() => setChannel("email")}
+                          onKeyDown={(e) => handleChannelKeyDown(e, 0)}
                           className={cn(
-                            "inline-flex h-8 items-center gap-1.5 rounded-full px-3 font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer",
+                            "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3 font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer",
                             channel === "email"
                               ? "bg-[#111111] text-white"
                               : "text-[#52525B] hover:text-[#111111]"
@@ -550,11 +623,19 @@ export function EscalationCadenceDemo() {
                         </button>
 
                         <button
+                          id="demo-channel-whatsapp"
+                          ref={(el) => {
+                            channelRefs.current[1] = el;
+                          }}
                           type="button"
-                          aria-pressed={channel === "whatsapp"}
+                          role="tab"
+                          aria-selected={channel === "whatsapp"}
+                          aria-controls="demo-channel-panel"
+                          tabIndex={channel === "whatsapp" ? 0 : -1}
                           onClick={() => setChannel("whatsapp")}
+                          onKeyDown={(e) => handleChannelKeyDown(e, 1)}
                           className={cn(
-                            "inline-flex h-8 items-center gap-1.5 rounded-full px-3 font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer",
+                            "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3 font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer",
                             channel === "whatsapp"
                               ? "bg-[#111111] text-white"
                               : "text-[#52525B] hover:text-[#111111]"
@@ -570,8 +651,8 @@ export function EscalationCadenceDemo() {
                       </div>
                     </div>
 
-                    <span className="font-medium text-[#71717A] tabular-nums">
-                      Daily dispatch · 09:30 IST
+                    <span className="shrink-0 whitespace-nowrap font-medium text-[#63636A] tabular-nums">
+                      Daily dispatch · 04:00 UTC
                     </span>
                   </div>
                 </div>

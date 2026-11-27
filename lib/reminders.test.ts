@@ -273,6 +273,14 @@ test("formatSenderDisplayName and formatSenderFromAddress personalize and saniti
 
   assert.equal(formatSenderFromAddress(base, ""), base);
   assert.equal(
+    formatSenderFromAddress("Personal Name <reminders@getpingcue.com>", ""),
+    "PingCue <reminders@getpingcue.com>"
+  );
+  assert.equal(
+    formatSenderFromAddress("reminders@getpingcue.com", null),
+    "PingCue <reminders@getpingcue.com>"
+  );
+  assert.equal(
     formatSenderFromAddress(base, "Vivek Sharma"),
     "Vivek Sharma via PingCue <reminders@getpingcue.com>"
   );

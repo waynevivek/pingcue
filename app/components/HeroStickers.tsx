@@ -37,9 +37,9 @@ export function InteractiveSticker({
       aria-hidden="true"
       onClick={handlePop}
       className={cn(
-        "select-none cursor-pointer bg-transparent p-0 border-0 outline-none transition-transform duration-200 ease-out hover:scale-110 active:scale-95",
+        "select-none cursor-pointer bg-transparent p-0 border-0 outline-none transition-transform duration-200 ease-out hover:scale-110 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
         tiltClass,
-        popped && "scale-115 -translate-y-1.5",
+        popped && "scale-115 -translate-y-1.5 motion-reduce:scale-100 motion-reduce:translate-y-0",
         className
       )}
     >
@@ -338,8 +338,8 @@ export function StarBuddySticker({ className }: StickerProps) {
   );
 }
 
-/** Floating sticker: crisp mint-lime rupee coin */
-export function RupeeCoinSticker({ className }: StickerProps) {
+/** Floating sticker: crisp mint-lime USD coin */
+export function DollarCoinSticker({ className }: StickerProps) {
   return (
     <svg
       aria-hidden="true"
@@ -368,9 +368,9 @@ export function RupeeCoinSticker({ className }: StickerProps) {
         strokeWidth="1.6"
         strokeDasharray="3.5 3.5"
       />
-      {/* Crisp ₹ glyph */}
+      {/* Crisp $ glyph */}
       <path
-        d="M31 28H46M31 34H46M34 28C39.5 28 42 30.8 42 34C42 37.8 39 40.5 33.5 40.5H31.5L42.5 50"
+        d="M38 24.5V51.5M43.5 31C43.5 28.5 41 27 38 27C34.8 27 32.5 28.6 32.5 31.2C32.5 34 35 35.2 38.2 36.2C41.8 37.3 44 38.8 44 41.8C44 44.8 41.4 46.8 38 46.8C34.6 46.8 32 45 32 42.2"
         stroke="#18181B"
         strokeWidth="2.8"
         strokeLinecap="round"
@@ -489,7 +489,7 @@ export function PerchedPingMascot({
       >
         {/* Floating z z z when paused */}
         {sleeping && (
-          <g className="animate-pulse">
+          <g className="animate-pulse motion-reduce:animate-none">
             <text
               x="76"
               y="22"

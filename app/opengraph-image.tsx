@@ -210,7 +210,7 @@ export default function OpenGraphImage() {
                 fontWeight: 600,
               }}
             >
-              INR · USD · EUR · GBP
+              USD · EUR · GBP · INR
             </div>
           </div>
         </div>
