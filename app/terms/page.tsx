@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { buildPageMetadata } from "@/lib/seo";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Terms of Service — PingCue",
   description: "Terms of Service for using PingCue.",
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

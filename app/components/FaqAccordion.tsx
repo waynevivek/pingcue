@@ -62,12 +62,21 @@ export function FaqAccordion({ items }: { items: readonly FaqItem[] }) {
               id={panelId}
               role="region"
               aria-labelledby={triggerId}
-              hidden={!isOpen}
-              className="px-5 pb-5 pr-12 sm:px-6 sm:pb-6 sm:pr-16"
+              aria-hidden={!isOpen}
+              className={cn(
+                "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+                isOpen
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0"
+              )}
             >
-              <p className="max-w-[64ch] text-[14px] leading-[1.65] text-[#52525B] sm:text-[15px]">
-                {item.a}
-              </p>
+              <div className="overflow-hidden">
+                <div className="px-5 pb-5 pr-12 sm:px-6 sm:pb-6 sm:pr-16">
+                  <p className="max-w-[64ch] text-[14px] leading-[1.65] text-[#52525B] sm:text-[15px]">
+                    {item.a}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         );

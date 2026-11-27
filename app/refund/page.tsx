@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/app/components/BrandMark";
+import { buildPageMetadata } from "@/lib/seo";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Refund & Cancellation Policy — PingCue",
   description: "Refund and cancellation policy for the PingCue Founding Pass.",
-};
+  path: "/refund",
+});
 
 export default function RefundPage() {
   return (

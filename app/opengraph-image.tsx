@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "PingCue — Polite Invoice Chasers for Freelancers";
+export const alt = "PingCue — Automated Invoice Reminders for Freelancers";
 export const size = {
   width: 1200,
   height: 630,

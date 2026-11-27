@@ -11,12 +11,15 @@ import {
 } from "@/app/components/HeroStickers";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/db";
+import { buildPageMetadata } from "@/lib/seo";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Reset password — PingCue",
   description: "Choose a new password for your PingCue account.",
-};
+  path: "/auth/reset-password",
+  noIndex: true,
+});
 
 async function ResetPasswordStage() {
   if (!isSupabaseConfigured()) {

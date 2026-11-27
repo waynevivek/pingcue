@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trackEvent } from "@/lib/analytics";
 import { UpgradeCheckoutButton } from "./UpgradeCheckoutButton";
 
 type FoundingPassButtonProps = {
@@ -45,6 +46,7 @@ export function FoundingPassButton({
     setErrorMessage("");
 
     // Log Founding Pass click intent immediately without blocking modal open
+    trackEvent("founding_pass_click", { source });
     fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +90,7 @@ export function FoundingPassButton({
       }
 
       setStatus("done");
+      trackEvent("founding_pass_email", { source });
     } catch {
       setStatus("error");
       setErrorMessage("Network error. Please try again.");

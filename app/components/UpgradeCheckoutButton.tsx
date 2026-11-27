@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 export function UpgradeCheckoutButton({
   label = "Unlock Founding Pass — $19",
@@ -30,6 +31,7 @@ export function UpgradeCheckoutButton({
       };
 
       if (response.status === 401) {
+        trackEvent("checkout_redirect_login");
         router.push("/login?upgrade=1");
         return;
       }
@@ -39,6 +41,8 @@ export function UpgradeCheckoutButton({
         setLoading(false);
         return;
       }
+
+      trackEvent("checkout_initiated");
 
       if (data.checkoutUrl.startsWith("/")) {
         router.push(data.checkoutUrl);

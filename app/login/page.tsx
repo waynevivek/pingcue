@@ -11,13 +11,15 @@ import {
 } from "@/app/components/HeroStickers";
 import { getAuthCallbackErrorMessage } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/db";
+import { buildPageMetadata } from "@/lib/seo";
 import { AuthForm, type AuthMode } from "./AuthForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Sign in — PingCue",
   description:
-    "Sign in or create your PingCue account to manage invoice reminders.",
-};
+    "Sign in or create your free PingCue account to automate invoice payment reminders.",
+  path: "/login",
+});
 
 function readParam(
   params: Record<string, string | string[] | undefined>,
