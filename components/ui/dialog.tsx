@@ -40,7 +40,7 @@ export function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-black/[0.08] bg-white p-6 sm:p-7 text-[#111111] shadow-[0_24px_64px_-16px_rgba(15,23,42,0.24)] focus:outline-none",
+          "fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[28px] border border-black/[0.08] bg-white p-6 sm:p-7 text-[#111111] shadow-[0_24px_64px_-16px_rgba(15,23,42,0.24)] focus:outline-none",
           className
         )}
         {...props}

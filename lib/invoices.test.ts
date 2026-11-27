@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  CURRENCIES,
   computeCurrencyTotals,
   filterInvoices,
+  formatMoney,
   isValidIsoDate,
   normalizeWhatsappNumber,
   parseMajorToMinor,
@@ -281,20 +283,20 @@ test("computeCurrencyTotals aggregates owed, overdue, and collected separately b
 
   assert.equal(totals.length, 2);
   assert.deepEqual(totals[0], {
-    currency: "INR",
-    owedMinor: 300_000,
-    overdueMinor: 300_000,
-    collectedMinor: 300_000,
-    activeCount: 1,
-    overdueCount: 1,
-  });
-  assert.deepEqual(totals[1], {
     currency: "USD",
     owedMinor: 200_000,
     overdueMinor: 0,
     collectedMinor: 0,
     activeCount: 1,
     overdueCount: 0,
+  });
+  assert.deepEqual(totals[1], {
+    currency: "INR",
+    owedMinor: 300_000,
+    overdueMinor: 300_000,
+    collectedMinor: 300_000,
+    activeCount: 1,
+    overdueCount: 1,
   });
 });
 
@@ -312,4 +314,33 @@ test("parseMajorToMinor, parseReminderOffsets, and normalizeWhatsappNumber valid
   assert.equal(normalizeWhatsappNumber("+91 98765-43210"), "919876543210");
   assert.equal(normalizeWhatsappNumber("12345"), null);
   assert.equal(normalizeWhatsappNumber("1234567890123456"), null);
+});
+
+test("validateInvoiceFormData defaults missing currency to USD, supports all 4 currencies, and formats money", () => {
+  const missingCurrency = makeValidFormData();
+  missingCurrency.delete("currency");
+  const parsedDefault = validateInvoiceFormData(missingCurrency);
+  assert.equal(parsedDefault.ok, true);
+  if (parsedDefault.ok) {
+    assert.equal(parsedDefault.data.currency, "USD");
+  }
+
+  for (const currency of CURRENCIES) {
+    const parsed = validateInvoiceFormData(makeValidFormData({ currency }));
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) {
+      assert.equal(parsed.data.currency, currency);
+    }
+  }
+
+  const invalid = validateInvoiceFormData(makeValidFormData({ currency: "JPY" }));
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) {
+    assert.ok(invalid.fieldErrors.currency);
+  }
+
+  assert.equal(formatMoney(120_000, "USD"), "$1,200");
+  assert.equal(formatMoney(120_050, "EUR"), "€1,200.50");
+  assert.equal(formatMoney(120_000, "GBP"), "£1,200");
+  assert.equal(formatMoney(2_500_000, "INR"), "₹25,000");
 });

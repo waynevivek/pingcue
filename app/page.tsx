@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowUp,
@@ -19,6 +20,7 @@ import { FoundingPassButton } from "./components/FoundingPassButton";
 import heroStyles from "./components/HeroEscalation.module.css";
 import {
   ChimeBellSticker,
+  DollarCoinSticker,
   InlineEnvelopeSticker,
   InlinePaidBadgeSticker,
   InteractiveSticker,
@@ -26,7 +28,6 @@ import {
   PaperPlaneSticker,
   PerchedPingMascot,
   PlayfulBrandMark,
-  RupeeCoinSticker,
   SparkleSticker,
   StarBuddySticker,
 } from "./components/HeroStickers";
@@ -48,16 +49,16 @@ const WORKFLOW_ITEMS = [
     body: "Need a quick ping on WhatsApp? One tap opens WhatsApp with a polite, prefilled message and your payment link—no WhatsApp Business API setup required.",
   },
   {
-    tag: "INR · USD · EUR · GBP",
+    tag: "USD · EUR · GBP · INR",
     title: "Partial payments across four currencies",
-    body: "Track INR, USD, EUR, and GBP separately without FX guesswork. Log an amount received—reminders chase only the remaining balance and stop once paid.",
+    body: "Track USD, EUR, GBP, and INR separately without FX guesswork. Log an amount received—reminders chase only the remaining balance and stop once paid.",
   },
 ] as const;
 
 const FAQS = [
   {
     q: "Do I need an invoicing suite or Stripe to use PingCue?",
-    a: "No. PingCue is built specifically for freelancers who send UPI, Razorpay, Wise, PayPal, or bank-transfer payment links by email or WhatsApp. Paste your link and due date.",
+    a: "No. PingCue is built specifically for freelancers who send Stripe payment links, Wise, PayPal, or bank-transfer links by email or WhatsApp. Paste your link and due date.",
   },
   {
     q: "Where do client replies go?",
@@ -83,7 +84,8 @@ async function HeaderAuthAction() {
         data: { user },
       } = await supabase.auth.getUser();
       isSignedIn = Boolean(user);
-    } catch {
+    } catch (error) {
+      unstable_rethrow(error);
       isSignedIn = false;
     }
   }
@@ -103,6 +105,13 @@ export default function HomePage() {
 
   return (
     <div id="top" className="flex min-h-screen flex-col bg-[#FFFFFF] text-[#111111]">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-[9px] focus:bg-[#111111] focus:px-3.5 focus:py-2 focus:text-xs font-semibold focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#C3F584]"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
@@ -156,13 +165,13 @@ export default function HomePage() {
               label="Founding Pass — $19"
               mobileLabel="Pass — $19"
               checkoutLive={checkoutLive}
-              className="h-9 rounded-full bg-[#111111] px-3 text-xs font-semibold text-white shadow-[0_4px_14px_-6px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] sm:px-4 sm:text-[13px]"
+              className="h-9 rounded-full bg-[#111111] px-3 text-xs font-semibold text-white shadow-[0_4px_14px_-6px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:px-4 sm:text-[13px]"
             />
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         {/* Hero */}
         <section className="relative overflow-x-clip border-b border-black/[0.06] bg-[#FFFFFF]">
           <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:px-8 lg:pb-24 lg:pt-16">
@@ -187,7 +196,7 @@ export default function HomePage() {
                 className={`${heroStyles.stickerPop} ${heroStyles.stickerDelay3} absolute left-10 top-[266px] hidden lg:block`}
               >
                 <InteractiveSticker tiltClass="rotate-[9deg] hover:rotate-[2deg]">
-                  <RupeeCoinSticker className="h-[64px] w-[64px]" />
+                  <DollarCoinSticker className="h-[64px] w-[64px]" />
                 </InteractiveSticker>
               </div>
 
@@ -258,13 +267,13 @@ export default function HomePage() {
                   source="hero"
                   variant="primary"
                   checkoutLive={checkoutLive}
-                  className="h-12 rounded-full bg-[#111111] px-6 text-[15px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626]"
+                  className="h-12 rounded-full bg-[#111111] px-6 text-[15px] font-semibold tracking-[-0.01em] text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                 />
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-12 rounded-full border-black/[0.08] bg-[#F4F4F5] px-6 text-[15px] font-semibold tracking-[-0.01em] text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF]"
+                  className="h-12 rounded-full border-black/[0.08] bg-[#F4F4F5] px-6 text-[15px] font-semibold tracking-[-0.01em] text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                 >
                   <Link href="/login">Start free with 1 invoice</Link>
                 </Button>
@@ -274,24 +283,24 @@ export default function HomePage() {
               <div
                 className={`${heroStyles.heroRise} ${heroStyles.delay4} mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] font-medium text-[#52525B]`}
               >
-                <span className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 whitespace-nowrap">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#22C55E]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#22C55E]"
                   />
                   Free for 1 active invoice
                 </span>
-                <span className="inline-flex items-center gap-2 tabular-nums">
+                <span className="inline-flex items-center gap-2 whitespace-nowrap tabular-nums">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#60A5FA]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#60A5FA]"
                   />
-                  INR · USD · EUR · GBP
+                  USD · EUR · GBP · INR
                 </span>
-                <span className="inline-flex items-center gap-2 tabular-nums">
+                <span className="inline-flex items-center gap-2 whitespace-nowrap tabular-nums">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#FBBF24]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#FBBF24]"
                   />
                   $19 one-time · No subscription
                 </span>
@@ -308,7 +317,7 @@ export default function HomePage() {
         {/* How It Works — stickitupx.com Pastel Bento Grid + dusk.bot Inline Pills */}
         <section
           id="how-it-works"
-          className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+          className="scroll-mt-20 mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
         >
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-sans text-[32px] font-semibold leading-[1.08] tracking-[-0.035em] text-[#111111] sm:text-[44px] text-balance">
@@ -317,11 +326,7 @@ export default function HomePage() {
             <p className="mx-auto mt-4 max-w-[58ch] text-[15px] leading-[1.7] text-[#52525B] sm:text-[17px]">
               You already send{" "}
               <span className="mx-0.5 inline-flex items-center rounded-lg border border-black/[0.08] bg-[#F4F4F5] px-2 py-0.5 text-[0.9em] font-medium text-[#111111]">
-                UPI
-              </span>
-              ,{" "}
-              <span className="mx-0.5 inline-flex items-center rounded-lg border border-black/[0.08] bg-[#F4F4F5] px-2 py-0.5 text-[0.9em] font-medium text-[#111111]">
-                Razorpay
+                Stripe links
               </span>
               ,{" "}
               <span className="mx-0.5 inline-flex items-center rounded-lg border border-black/[0.08] bg-[#F4F4F5] px-2 py-0.5 text-[0.9em] font-medium text-[#111111]">
@@ -431,7 +436,7 @@ export default function HomePage() {
               <div className="mt-7 flex items-end justify-between gap-3">
                 <div className="flex-1 rounded-2xl border border-black/[0.08] bg-white p-3.5 shadow-[0_6px_18px_-8px_rgba(17,24,39,0.14)]">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#16A34A]">
+                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-[#15803D]">
                       <MessageCircle
                         className="h-3.5 w-3.5"
                         strokeWidth={2}
@@ -440,13 +445,13 @@ export default function HomePage() {
                       wa.me prefilled
                     </span>
                     <ArrowUpRight
-                      className="h-3.5 w-3.5 text-[#71717A]"
+                      className="h-3.5 w-3.5 text-[#63636A]"
                       strokeWidth={2}
                       aria-hidden="true"
                     />
                   </div>
                   <p className="mt-1.5 text-[12px] leading-snug text-[#3F3F46]">
-                    Hi Priya, gentle nudge on ₹20,000 due 14 Nov…
+                    Hi Maya, gentle nudge on $1,200 due 14 Nov…
                   </p>
                 </div>
                 <PaperPlaneSticker className="hidden h-12 w-14 rotate-[6deg] shrink-0 sm:block" />
@@ -456,7 +461,7 @@ export default function HomePage() {
             {/* Bento 4: Periwinkle Blue — Partial payments across four currencies */}
             <article className="relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-black/[0.06] bg-[#D9E6FF] p-6 sm:p-8 md:col-span-7">
               <div>
-                <span className="inline-flex items-center rounded-full border border-black/[0.08] bg-white px-3 py-1 text-[12px] font-semibold text-[#111111] tabular-nums shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                <span className="inline-flex items-center whitespace-nowrap rounded-full border border-black/[0.08] bg-white px-3 py-1 text-[12px] font-semibold text-[#111111] tabular-nums shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   {WORKFLOW_ITEMS[3].tag}
                 </span>
                 <h3 className="mt-4 text-[22px] font-semibold leading-tight tracking-[-0.025em] text-[#111111] sm:text-[24px]">
@@ -467,21 +472,21 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Four-Currency Tactile Strip + Stickers */}
+              {/* Multi-Currency Tactile Strip + Stickers */}
               <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {[
-                    { code: "INR", symbol: "₹", active: true },
-                    { code: "USD", symbol: "$", active: false },
+                    { code: "USD", symbol: "$", active: true },
                     { code: "EUR", symbol: "€", active: false },
                     { code: "GBP", symbol: "£", active: false },
+                    { code: "INR", symbol: "₹", active: false },
                   ].map((curr) => (
                     <span
                       key={curr.code}
                       className={
                         curr.active
-                          ? "inline-flex items-center gap-1.5 rounded-2xl border border-[#111111] bg-[#111111] px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_3px_0_rgba(17,17,17,0.28)]"
-                          : "inline-flex items-center gap-1.5 rounded-2xl border border-black/[0.08] bg-white px-3.5 py-2 text-[12px] font-semibold text-[#111111] shadow-[0_3px_0_rgba(17,17,17,0.08)]"
+                          ? "inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border border-[#111111] bg-[#111111] px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_3px_0_rgba(17,17,17,0.28)]"
+                          : "inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border border-black/[0.08] bg-white px-3.5 py-2 text-[12px] font-semibold text-[#111111] shadow-[0_3px_0_rgba(17,17,17,0.08)]"
                       }
                     >
                       <span>{curr.symbol}</span>
@@ -490,7 +495,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="hidden items-center gap-2 sm:flex">
-                  <RupeeCoinSticker className="h-12 w-12 -rotate-[8deg]" />
+                  <DollarCoinSticker className="h-12 w-12 -rotate-[8deg]" />
                   <PaidStampSticker className="h-12 w-14 rotate-[6deg]" />
                 </div>
               </div>
@@ -501,7 +506,7 @@ export default function HomePage() {
         {/* Pricing — dusk.bot Perched Mascot + Collectible Banner Cards */}
         <section
           id="pricing"
-          className="border-y border-black/[0.06] bg-[#FAFAFA] py-16 sm:py-24"
+          className="scroll-mt-20 border-y border-black/[0.06] bg-[#FAFAFA] py-16 sm:py-24"
         >
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-xl text-center">
@@ -554,7 +559,7 @@ export default function HomePage() {
                     <span className="text-[42px] font-bold leading-none tracking-[-0.04em] text-[#111111] tabular-nums">
                       $0
                     </span>
-                    <span className="text-[14px] font-medium text-[#71717A]">
+                    <span className="text-[14px] font-medium text-[#63636A]">
                       forever
                     </span>
                   </div>
@@ -566,7 +571,7 @@ export default function HomePage() {
                     "Full escalating email schedule (-3d to +30d)",
                     "Custom schedule & 1-click Pause button",
                     "Send test email to yourself",
-                    "INR, USD, EUR & GBP dashboard totals",
+                    "USD, EUR, GBP & INR dashboard totals",
                   ].map((line) => (
                     <li key={line} className="flex items-start gap-2.5">
                       <span
@@ -585,7 +590,7 @@ export default function HomePage() {
                     asChild
                     variant="outline"
                     size="lg"
-                    className="h-12 w-full rounded-full border-black/10 bg-[#F4F4F5] text-[15px] font-semibold text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF]"
+                    className="h-12 w-full rounded-full border-black/10 bg-[#F4F4F5] text-[15px] font-semibold text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                   >
                     <Link href="/login">Start free with 1 invoice</Link>
                   </Button>
@@ -629,7 +634,7 @@ export default function HomePage() {
                     <h3 className="text-[22px] font-semibold tracking-[-0.02em] text-[#111111]">
                       Founding Pass
                     </h3>
-                    <span className="inline-flex items-center rounded-full bg-[#111111] px-3 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-[#111111] px-3 py-1 text-[11px] font-semibold text-white">
                       One-time · No subscription
                     </span>
                   </div>
@@ -671,7 +676,7 @@ export default function HomePage() {
                   <FoundingPassButton
                     source="pricing"
                     variant="primary"
-                    className="h-12 w-full rounded-full bg-[#111111] text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626]"
+                    className="h-12 w-full rounded-full bg-[#111111] text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                     checkoutLive={checkoutLive}
                   />
                   <p className="text-center text-[12px] text-[#574C1B]">
@@ -687,7 +692,7 @@ export default function HomePage() {
         {/* FAQ */}
         <section
           id="faq"
-          className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+          className="scroll-mt-20 mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
         >
           <div className="text-center">
             <h2 className="font-sans text-[32px] font-semibold leading-[1.08] tracking-[-0.035em] text-[#111111] sm:text-[42px]">
@@ -738,13 +743,13 @@ export default function HomePage() {
                 source="footer"
                 variant="primary"
                 checkoutLive={checkoutLive}
-                className="h-12 rounded-full bg-[#111111] px-7 text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626]"
+                className="h-12 rounded-full bg-[#111111] px-7 text-[15px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(17,17,17,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#262626] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               />
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 rounded-full border-black/[0.08] bg-[#F4F4F5] px-6 text-[15px] font-semibold text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF]"
+                className="h-12 rounded-full border-black/[0.08] bg-[#F4F4F5] px-6 text-[15px] font-semibold text-[#111111] shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:bg-[#EAEAEF] active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
               >
                 <Link href="/login">Start free with 1 invoice</Link>
               </Button>
@@ -768,28 +773,28 @@ export default function HomePage() {
                 Paid on time.{" "}
                 <InlinePaidBadgeSticker className="ml-0.5 h-[0.92em] w-auto rotate-[8deg]" />
               </p>
-              <p className="mt-3 text-[13.5px] font-medium text-[#3F4B5C]">
+              <p className="mt-3 text-[13.5px] font-medium text-[#334155]">
                 Built for independent freelancers.
               </p>
-              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium text-[#475569]">
-                <span className="inline-flex items-center gap-1.5">
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium text-[#334155]">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#22C55E]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#22C55E]"
                   />
                   Free for 1 active invoice
                 </span>
-                <span className="inline-flex items-center gap-1.5 tabular-nums">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#60A5FA]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#2563EB]"
                   />
-                  INR · USD · EUR · GBP
+                  USD · EUR · GBP · INR
                 </span>
-                <span className="inline-flex items-center gap-1.5 tabular-nums">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums">
                   <span
                     aria-hidden="true"
-                    className="h-2 w-2 rounded-full bg-[#FBBF24]"
+                    className="h-2 w-2 shrink-0 rounded-full bg-[#D97706]"
                   />
                   $19 one-time · No subscription
                 </span>
@@ -799,14 +804,14 @@ export default function HomePage() {
             {/* Structured Link Columns */}
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)] lg:col-span-7">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#334155]">
                   Product
                 </p>
-                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                <ul className="mt-3.5 space-y-2 text-[14px] font-medium text-[#1E293B]">
                   <li>
                     <a
                       href="#how-it-works"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       How it works
                     </a>
@@ -814,7 +819,7 @@ export default function HomePage() {
                   <li>
                     <a
                       href="#pricing"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Pricing
                     </a>
@@ -822,7 +827,7 @@ export default function HomePage() {
                   <li>
                     <a
                       href="#faq"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       FAQ
                     </a>
@@ -830,7 +835,7 @@ export default function HomePage() {
                   <li>
                     <Link
                       href="/login"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Sign in
                     </Link>
@@ -839,14 +844,14 @@ export default function HomePage() {
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#334155]">
                   Legal
                 </p>
-                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                <ul className="mt-3.5 space-y-2 text-[14px] font-medium text-[#1E293B]">
                   <li>
                     <Link
                       href="/terms"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Terms of Service
                     </Link>
@@ -854,7 +859,7 @@ export default function HomePage() {
                   <li>
                     <Link
                       href="/privacy"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Privacy Policy
                     </Link>
@@ -862,7 +867,7 @@ export default function HomePage() {
                   <li>
                     <Link
                       href="/refund"
-                      className="transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Refund Policy
                     </Link>
@@ -871,14 +876,14 @@ export default function HomePage() {
               </div>
 
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#475569]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#334155]">
                   Connect
                 </p>
-                <ul className="mt-3.5 space-y-2.5 text-[14px] font-medium text-[#1E293B]">
+                <ul className="mt-3.5 space-y-2 text-[14px] font-medium text-[#1E293B]">
                   <li>
                     <a
                       href={`mailto:${SUPPORT_EMAIL}`}
-                      className="break-words transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-block break-words rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       Contact: {SUPPORT_EMAIL}
                     </a>
@@ -886,7 +891,7 @@ export default function HomePage() {
                   <li>
                     <a
                       href="#top"
-                      className="inline-flex items-center gap-1 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+                      className="inline-flex items-center gap-1 rounded py-0.5 transition-colors hover:text-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
                     >
                       <span>Back to top</span>
                       <ArrowUp
@@ -917,7 +922,7 @@ export default function HomePage() {
 
             <div className="absolute bottom-[16%] left-[32%] z-10 sm:left-[34%]">
               <InteractiveSticker tiltClass="rotate-[10deg] hover:rotate-0">
-                <RupeeCoinSticker className="h-8 w-8 sm:h-14 sm:w-14 lg:h-[68px] lg:w-[68px]" />
+                <DollarCoinSticker className="h-8 w-8 sm:h-14 sm:w-14 lg:h-[68px] lg:w-[68px]" />
               </InteractiveSticker>
             </div>
 

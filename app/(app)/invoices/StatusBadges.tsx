@@ -32,30 +32,30 @@ export function InvoiceStatusBadges({
     ? {
         label: "Overdue",
         dot: "bg-[#E11D48]",
-        pill: "bg-[#FFF1F2] text-[#BE123C]",
+        pill: "border-[#FECDD3] bg-[#FFF5F6] text-[#9F1239]",
       }
     : status === "paid"
       ? {
           label: "Paid",
           dot: "bg-[#16A34A]",
-          pill: "bg-[#F0FDF4] text-[#15803D]",
+          pill: "border-[#BBF7D0] bg-[#F2FDF5] text-[#14532D]",
         }
       : status === "partial"
         ? {
             label: "Partial",
             dot: "bg-[#D97706]",
-            pill: "bg-[#FEFCE8] text-[#854D0E]",
+            pill: "border-[#FDE68A] bg-[#FEFDF0] text-[#713F12]",
           }
         : {
             label: "Unpaid",
-            dot: "bg-[#A1A1AA]",
-            pill: "bg-[#F4F4F2] text-[#52525B]",
+            dot: "bg-[#63636A]",
+            pill: "border-black/[0.09] bg-[#F8F9F6] text-[#52525B]",
           };
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${primaryStatus.pill}`}
+        className={`inline-flex items-center gap-1.5 rounded-[7px] border px-2 py-0.5 text-[11.5px] font-medium whitespace-nowrap ${primaryStatus.pill}`}
       >
         <span
           aria-hidden="true"
@@ -65,7 +65,7 @@ export function InvoiceStatusBadges({
       </span>
 
       {overdue && status === "partial" && (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEFCE8] px-2 py-0.5 text-[11px] font-medium text-[#854D0E] whitespace-nowrap">
+        <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[#FDE68A] bg-[#FEFDF0] px-2 py-0.5 text-[11.5px] font-medium text-[#713F12] whitespace-nowrap">
           <span
             aria-hidden="true"
             className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#D97706]"
@@ -75,17 +75,17 @@ export function InvoiceStatusBadges({
       )}
 
       {active && emailSuppressed && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF1F2] px-2 py-0.5 text-[11px] font-medium text-[#BE123C] whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 rounded-[7px] border border-[#FECDD3] bg-[#FFF5F6] px-2 py-0.5 text-[11.5px] font-medium text-[#9F1239] whitespace-nowrap">
           <MailX className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span>Email paused</span>
         </span>
       )}
 
-      {paused && invoice.paused_until && (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-medium text-[#1D4ED8] whitespace-nowrap tabular-nums">
+      {active && paused && invoice.paused_until && (
+        <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[#BFDBFE] bg-[#F2F7FF] px-2 py-0.5 text-[11.5px] font-medium text-[#1E3A8A] whitespace-nowrap tabular-nums">
           <span
             aria-hidden="true"
-            className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B82F6]"
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]"
           />
           <span>Paused until {formatShortDate(invoice.paused_until)}</span>
         </span>

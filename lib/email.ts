@@ -30,9 +30,6 @@ export function formatSenderFromAddress(
 ): string {
   const trimmedBase = baseFrom.trim();
   const displayName = formatSenderDisplayName(senderName);
-  if (displayName === "PingCue") {
-    return trimmedBase;
-  }
 
   const angleMatch = trimmedBase.match(/<([^<>]+)>/);
   const address = (angleMatch ? angleMatch[1] : trimmedBase).trim();
